@@ -4,16 +4,20 @@ function App() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetch('/api/data') // This will be proxied to http://localhost:5000/api/data
+    fetch(`/user/${encodeURIComponent('John Keen')}`) // This will be proxied to http://localhost:5000/api/data
       .then(response => response.json())
-      .then(data => setMessage(data.message))
+      .then(data => {
+        console.log(data.message);
+        console.log(); 
+        setMessage(data.message)
+      }
+      )
       .catch(error => console.error('Error fetching data:', error));
   }, []);
 
   return (
     <div>
-      <h1>React Frontend</h1>
-      <p>{message}</p>
+      <h1>React Frontend: {message}</h1>
     </div>
   );
 }

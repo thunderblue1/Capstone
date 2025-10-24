@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
@@ -8,4 +8,10 @@ def index():
 
 @app.route('/user/<customer>')
 def user(customer):
-    return '<h1> Hello {}! </h1>'.format(customer)
+    message = {
+        "message": 'Hello {}!'.format(customer)
+    }
+    return jsonify(message)
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
