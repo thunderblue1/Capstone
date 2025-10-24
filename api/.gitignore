@@ -1,3 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.pytest_cache/
+htmlcov/
+.DS_Store # macOS specific
+.idea/ # PyCharm specific
+*.egg-info/
+dist/
+build/
+
+# Flask specific
+instance/ # Contains application-specific configuration and data not meant for version control
+*.sqlite # SQLite database files
+*.db # Other database files
+
+# Log files
+*.log
+
+# Environment variables
+.env
+
 # Logs
 logs
 *.log
@@ -6,19 +38,3 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
