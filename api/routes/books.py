@@ -25,8 +25,10 @@ Dependencies:
     - models.Book and models.Category for data access
 """
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from sqlalchemy import or_, desc
 from models import db, Book, Category
+from utils.auth import manager_required
 
 books_bp = Blueprint('books', __name__)
 
@@ -239,5 +241,172 @@ def get_genres():
     
     return jsonify({
         'genres': [g[0] for g in genres if g[0]]
+    })
+
+
+# ─────────────────────────────────────────────────────────────
+# MANAGER-ONLY CRUD OPERATIONS
+# ─────────────────────────────────────────────────────────────
+
+@books_bp.route('/', methods=['POST'])
+@jwt_required()
+@manager_required
+def create_book():
+    """
+    Create a new book (Manager only)
+    
+    Request Body:
+        {
+            "title": "Book Title",
+            "author": "Author Name",
+            "isbn13": "9781234567890",
+            "publisher": "Publisher Name",
+            "publicationDate": "2024-01-01",
+            "language": "en",
+            "genre": "Fiction",
+            "description": "Book description",
+            "pageCount": 300,
+            "price": 29.99,
+            "currency": "USD",
+            "stockQuantity": 100,
+            "coverImageUrl": "https://example.com/image.jpg",
+            "categoryId": 1
+        }
+    
+    Returns:
+        201: Book created successfully
+        400: Invalid request data
+    """
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    # Required fields
+    required_fields = ['title', 'author', 'isbn13', 'price']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'{field} is required'}), 400
+    
+    # Check if ISBN already exists
+    if Book.query.filter_by(isbn_13=data['isbn13']).first():
+        return jsonify({'error': 'Book with this ISBN already exists'}), 409
+    
+    # Create new book
+    book = Book(
+        title=data['title'],
+        author=data['author'],
+        isbn_13=data['isbn13'],
+        publisher=data.get('publisher'),
+        publication_date=data.get('publicationDate'),
+        language=data.get('language', 'en'),
+        genre=data.get('genre'),
+        description=data.get('description'),
+        page_count=data.get('pageCount'),
+        price=data['price'],
+        currency=data.get('currency', 'USD'),
+        stock_quantity=data.get('stockQuantity', 0),
+        cover_image_url=data.get('coverImageUrl'),
+        category_id=data.get('categoryId')
+    )
+    
+    db.session.add(book)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Book created successfully',
+        'book': book.to_dict(include_category=True)
+    }), 201
+
+
+@books_bp.route('/<int:book_id>', methods=['PUT'])
+@jwt_required()
+@manager_required
+def update_book(book_id):
+    """
+    Update an existing book (Manager only)
+    
+    Request Body:
+        Partial book data to update (all fields optional)
+    
+    Returns:
+        200: Book updated successfully
+        404: Book not found
+    """
+    book = Book.query.get_or_404(book_id)
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    # Update fields if provided
+    if 'title' in data:
+        book.title = data['title']
+    if 'author' in data:
+        book.author = data['author']
+    if 'isbn13' in data:
+        # Check if ISBN is already used by another book
+        existing = Book.query.filter_by(isbn_13=data['isbn13']).first()
+        if existing and existing.id != book_id:
+            return jsonify({'error': 'ISBN already in use'}), 409
+        book.isbn_13 = data['isbn13']
+    if 'publisher' in data:
+        book.publisher = data['publisher']
+    if 'publicationDate' in data:
+        book.publication_date = data['publicationDate']
+    if 'language' in data:
+        book.language = data['language']
+    if 'genre' in data:
+        book.genre = data['genre']
+    if 'description' in data:
+        book.description = data['description']
+    if 'pageCount' in data:
+        book.page_count = data['pageCount']
+    if 'price' in data:
+        book.price = data['price']
+    if 'currency' in data:
+        book.currency = data['currency']
+    if 'stockQuantity' in data:
+        book.stock_quantity = data['stockQuantity']
+    if 'coverImageUrl' in data:
+        book.cover_image_url = data['coverImageUrl']
+    if 'categoryId' in data:
+        book.category_id = data['categoryId']
+    
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Book updated successfully',
+        'book': book.to_dict(include_category=True)
+    })
+
+
+@books_bp.route('/<int:book_id>', methods=['DELETE'])
+@jwt_required()
+@manager_required
+def delete_book(book_id):
+    """
+    Delete a book (Manager only)
+    
+    Returns:
+        200: Book deleted successfully
+        404: Book not found
+        400: Cannot delete book (e.g., has orders)
+    """
+    book = Book.query.get_or_404(book_id)
+    
+    # Check if book has associated orders
+    from models import OrderItem
+    order_items = OrderItem.query.filter_by(book_id=book_id).first()
+    if order_items:
+        return jsonify({
+            'error': 'Cannot delete book with existing orders. Consider marking as out of stock instead.'
+        }), 400
+    
+    db.session.delete(book)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Book deleted successfully'
     })
 

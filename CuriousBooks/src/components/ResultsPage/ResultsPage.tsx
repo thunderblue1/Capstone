@@ -52,6 +52,7 @@ interface ResultsPageProps {
   isLoggedIn?: boolean;
   user?: User | null;
   userAvatar?: string | null;
+  cartItemCount?: number;
   onLogout?: () => void;
 }
 
@@ -61,6 +62,7 @@ const ResultsPage: FC<ResultsPageProps> = ({
   isLoggedIn = false,
   user = null,
   userAvatar = null,
+  cartItemCount = 0,
   onLogout,
 }) => {
   const [searchParams] = useSearchParams();
@@ -140,7 +142,7 @@ const ResultsPage: FC<ResultsPageProps> = ({
   return (
     <div className="results-page" data-testid="ResultsPage">
       <NavBar 
-        cartItemCount={cartItems.length}
+        cartItemCount={cartItemCount}
         isLoggedIn={isLoggedIn}
         user={user}
         userAvatar={userAvatar}

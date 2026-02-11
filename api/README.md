@@ -43,7 +43,14 @@ DB_PASSWORD=your-password
 DB_NAME=curiousbooks
 JWT_SECRET_KEY=your-jwt-secret
 CORS_ORIGINS=http://localhost:5173
+
+# Stripe Configuration (required for checkout)
+# Using test keys for development - get your keys from https://dashboard.stripe.com/test/apikeys
+STRIPE_PUBLISHABLE_KEY=pk_test_51ShmmmKTQjdI7MuphPr7dXH7LtoHmO5LZxgYam9dJaIsgoi9DurxSo2peJ1ZGMMH9sSHdFcIxQ6OvKCRz4RPoDbs00pjQBAbfZ
+STRIPE_SECRET_KEY=sk_test_51ShmmmKTQjdI7MupENFcBi5BsxFOEtA7eJxJaPfN3YP11LcjpLA9BMnCxkhxApE7pVSQF44TDAm7cNDD3lAPxnUR00RKHnDpdK
 ```
+
+**Important**: Never commit your `.env` file to version control. The Stripe keys should be kept secure.
 
 4. Run the server:
 ```bash
@@ -93,6 +100,11 @@ The API will be available at `http://localhost:5000`
 - `POST /api/orders/<id>/pay` - Pay for order (requires auth)
 - `POST /api/orders/<id>/cancel` - Cancel order (requires auth)
 - `POST /api/orders/cart/validate` - Validate cart items
+
+### Stripe Payment
+- `GET /api/orders/stripe/config` - Get Stripe publishable key
+- `POST /api/orders/stripe/create-intent` - Create Stripe payment intent (requires auth)
+- `POST /api/orders/stripe/confirm` - Confirm payment and create order (requires auth)
 
 ### Recommendations
 - `GET /api/recommendations` - Get recommendations
@@ -152,6 +164,32 @@ Configure the API URL in the frontend:
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
+
+## Stripe Payment Integration
+
+The application includes a complete Stripe checkout flow:
+
+1. **Cart Management**: Users can update quantities for each item in the cart
+2. **Checkout Page**: Collects shipping information and payment details
+3. **Stripe Payment**: Uses Stripe Elements for secure card input
+4. **Order Creation**: After successful payment, order is created with customer data stored in database
+
+### Database Schema Updates
+
+The `Order` model has been extended to store:
+- Stripe payment intent ID
+- Stripe customer ID
+- Customer email and name
+- Complete shipping address
+
+### Setup Steps
+
+1. Get your Stripe API keys from https://dashboard.stripe.com/apikeys
+2. Add them to your `.env` file (see configuration above)
+3. Install frontend dependencies: `cd CuriousBooks && npm install`
+4. The checkout flow will automatically use Stripe for payment processing
+
+**Security Note**: Stripe keys are stored in environment variables and never exposed to the frontend. Only the publishable key is sent to the client for Stripe Elements initialization.
 
 ## Development
 

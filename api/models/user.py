@@ -16,6 +16,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(255), nullable=True)
     last_name = db.Column(db.String(255), nullable=True)
+    role = db.Column(db.String(50), nullable=False, default='customer')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -37,11 +38,20 @@ class User(db.Model):
             'username': self.username,
             'firstName': self.first_name,
             'lastName': self.last_name,
+            'role': self.role,
             'createdAt': self.created_at.isoformat() if self.created_at else None
         }
         if include_email:
             data['email'] = self.email
         return data
+    
+    def has_role(self, *roles):
+        """Check if user has any of the specified roles"""
+        return self.role in roles
+    
+    def is_manager(self):
+        """Check if user is a manager"""
+        return self.role == 'manager'
     
     def __repr__(self):
         return f'<User {self.username}>'

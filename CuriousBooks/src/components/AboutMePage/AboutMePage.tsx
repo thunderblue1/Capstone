@@ -9,6 +9,7 @@ interface AboutMePageProps {
   isLoggedIn?: boolean;
   user?: User | null;
   userAvatar?: string | null;
+  cartItemCount?: number;
   onLogout?: () => void;
 }
 
@@ -17,12 +18,13 @@ const AboutMePage: FC<AboutMePageProps> = ({
   isLoggedIn = false,
   user = null,
   userAvatar = null,
+  cartItemCount = 0,
   onLogout,
 }) => {
   return (
     <div className="about-page" data-testid="AboutMePage">
       <NavBar 
-        cartItemCount={cartItems.length}
+        cartItemCount={cartItemCount}
         isLoggedIn={isLoggedIn}
         user={user}
         userAvatar={userAvatar}

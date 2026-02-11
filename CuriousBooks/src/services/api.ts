@@ -116,10 +116,22 @@ async function apiFetch<T>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (error: any) {
+    // Handle network errors (connection refused, timeout, etc.)
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new ApiError(
+        0,
+        `Cannot connect to server. Make sure the backend is running at ${API_BASE_URL}`
+      );
+    }
+    throw new ApiError(0, error.message || 'Network error occurred');
+  }
 
   // Handle 401 - try to refresh token
   if (response.status === 401 && getRefreshToken()) {
@@ -270,6 +282,65 @@ export const booksApi = {
   getGenres: async (): Promise<string[]> => {
     const response = await apiFetch<{ genres: string[] }>('/books/genres');
     return response.genres;
+  },
+
+  /**
+   * Create a new book (Manager only)
+   */
+  create: async (bookData: {
+    title: string;
+    author: string;
+    isbn13: string;
+    price: number;
+    publisher?: string;
+    publicationDate?: string;
+    language?: string;
+    genre?: string;
+    description?: string;
+    pageCount?: number;
+    currency?: string;
+    stockQuantity?: number;
+    coverImageUrl?: string;
+    categoryId?: number;
+  }): Promise<{ message: string; book: Book }> => {
+    return apiFetch('/books', {
+      method: 'POST',
+      body: JSON.stringify(bookData),
+    });
+  },
+
+  /**
+   * Update an existing book (Manager only)
+   */
+  update: async (bookId: string, bookData: Partial<{
+    title: string;
+    author: string;
+    isbn13: string;
+    publisher: string;
+    publicationDate: string;
+    language: string;
+    genre: string;
+    description: string;
+    pageCount: number;
+    price: number;
+    currency: string;
+    stockQuantity: number;
+    coverImageUrl: string;
+    categoryId: number;
+  }>): Promise<{ message: string; book: Book }> => {
+    return apiFetch(`/books/${bookId}`, {
+      method: 'PUT',
+      body: JSON.stringify(bookData),
+    });
+  },
+
+  /**
+   * Delete a book (Manager only)
+   */
+  delete: async (bookId: string): Promise<{ message: string }> => {
+    return apiFetch(`/books/${bookId}`, {
+      method: 'DELETE',
+    });
   },
 };
 
@@ -509,6 +580,63 @@ export const ordersApi = {
   cancel: async (orderId: string): Promise<{ message: string; order: Order }> => {
     return apiFetch(`/orders/${orderId}/cancel`, {
       method: 'POST',
+    });
+  },
+
+  /**
+   * Get Stripe configuration (publishable key)
+   */
+  getStripeConfig: async (): Promise<{ publishableKey: string }> => {
+    return apiFetch('/orders/stripe/config');
+  },
+
+  /**
+   * Create Stripe payment intent (requires authentication)
+   */
+  createStripeIntent: async (data: {
+    items: CartItem[];
+    customerEmail?: string;
+    customerName?: string;
+    shippingAddress?: {
+      line1: string;
+      line2?: string;
+      city: string;
+      state: string;
+      postalCode: string;
+      country: string;
+    };
+  }): Promise<{
+    clientSecret: string;
+    paymentIntentId: string;
+    amount: number;
+    currency: string;
+  }> => {
+    return apiFetch('/orders/stripe/create-intent', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Confirm Stripe payment and create order (requires authentication)
+   */
+  confirmStripePayment: async (data: {
+    paymentIntentId: string;
+    items: CartItem[];
+    customerEmail?: string;
+    customerName?: string;
+    shippingAddress?: {
+      line1: string;
+      line2?: string;
+      city: string;
+      state: string;
+      postalCode: string;
+      country: string;
+    };
+  }): Promise<{ message: string; order: Order }> => {
+    return apiFetch('/orders/stripe/confirm', {
+      method: 'POST',
+      body: JSON.stringify(data),
     });
   },
 };

@@ -52,6 +52,7 @@ export interface User {
   email?: string;
   firstName: string | null;
   lastName: string | null;
+  role?: string;
   createdAt: string;
 }
 
@@ -75,6 +76,9 @@ export interface Order {
   updatedAt: string;
   items: OrderItem[];
   user?: User;
+  stripePaymentIntentId?: string;
+  customerEmail?: string;
+  customerName?: string;
 }
 
 export interface CartItem {

@@ -76,11 +76,15 @@ async function sendLogs(endpoint: string, data: Record<string, unknown>): Promis
     });
 
     if (!response.ok) {
-      console.warn(`Failed to send log to ${endpoint}:`, response.status);
+      // Only warn in development, fail silently in production
+      if (ENABLE_CONSOLE_LOGS) {
+        console.warn(`Failed to send log to ${endpoint}:`, response.status);
+      }
     }
   } catch (error) {
-    // Fail silently to avoid recursive logging
-    if (ENABLE_CONSOLE_LOGS) {
+    // Fail silently to avoid recursive logging and console spam
+    // Only log connection errors once to avoid spam
+    if (ENABLE_CONSOLE_LOGS && !(error instanceof TypeError && error.message.includes('fetch'))) {
       console.warn('Logger: Failed to send log to server:', error);
     }
   }
@@ -104,7 +108,9 @@ async function sendBatchedLogs(): Promise<void> {
       body: JSON.stringify({ logs: logsToSend }),
     });
   } catch (error) {
-    if (ENABLE_CONSOLE_LOGS) {
+    // Fail silently - logging server may not be running
+    // Only log non-network errors to avoid spam
+    if (ENABLE_CONSOLE_LOGS && !(error instanceof TypeError && error.message.includes('fetch'))) {
       console.warn('Logger: Failed to send batched logs:', error);
     }
   }

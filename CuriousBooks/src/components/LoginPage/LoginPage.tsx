@@ -1,5 +1,5 @@
-import React, { FC, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { FC, useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import Footer from '../Footer/Footer';
 import { authApi, ApiError } from '../../services/api';
@@ -18,6 +18,11 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Get redirect path from URL params
+  const redirectPath = searchParams.get('redirect') || '/';
+  const fromCheckout = searchParams.get('from') === 'checkout';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,23 +47,24 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin }) => {
     setIsLoading(true);
 
     try {
+      let authResponse;
       if (isSignUp) {
-        await authApi.register({
+        authResponse = await authApi.register({
           email,
           password,
           username,
         });
       } else {
-        await authApi.login(email, password);
+        authResponse = await authApi.login(email, password);
       }
 
-      // Call optional callback
+      // Call optional callback with user data from response
       if (onLogin) {
-        onLogin(email, password);
+        onLogin(email, password, authResponse.user);
       }
       
-      // Navigate to home after successful login
-      navigate('/');
+      // Navigate to redirect path (checkout if coming from checkout) or home
+      navigate(redirectPath);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -203,6 +209,10 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin }) => {
 };
 
 export default LoginPage;
+
+
+
+
 
 
 

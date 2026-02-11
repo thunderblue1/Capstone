@@ -50,6 +50,7 @@ interface BookSynopsisPageProps {
   isLoggedIn?: boolean;
   user?: User | null;
   userAvatar?: string | null;
+  cartItemCount?: number;
   onLogout?: () => void;
 }
 
@@ -59,6 +60,7 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
   isLoggedIn = false,
   user = null,
   userAvatar = null,
+  cartItemCount = 0,
   onLogout,
 }) => {
   /* ─────────────────────────────────────────────────────────────
@@ -146,7 +148,7 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
     return (
       <div className="book-synopsis-page" data-testid="BookSynopsisPage">
         <NavBar 
-          cartItemCount={cartItems.length}
+          cartItemCount={cartItemCount}
           isLoggedIn={isLoggedIn}
           user={user}
           userAvatar={userAvatar}
@@ -167,7 +169,7 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
     return (
       <div className="book-synopsis-page" data-testid="BookSynopsisPage">
         <NavBar 
-          cartItemCount={cartItems.length}
+          cartItemCount={cartItemCount}
           isLoggedIn={isLoggedIn}
           user={user}
           userAvatar={userAvatar}
@@ -188,7 +190,7 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
   return (
     <div className="book-synopsis-page" data-testid="BookSynopsisPage">
       <NavBar 
-        cartItemCount={cartItems.length}
+        cartItemCount={cartItemCount}
         isLoggedIn={isLoggedIn}
         user={user}
         userAvatar={userAvatar}

@@ -18,6 +18,20 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Stripe payment information
+    stripe_payment_intent_id = db.Column(db.String(255), nullable=True, index=True)
+    stripe_customer_id = db.Column(db.String(255), nullable=True)
+    
+    # Customer information for order
+    customer_email = db.Column(db.String(150), nullable=True)
+    customer_name = db.Column(db.String(255), nullable=True)
+    shipping_address_line1 = db.Column(db.String(255), nullable=True)
+    shipping_address_line2 = db.Column(db.String(255), nullable=True)
+    shipping_city = db.Column(db.String(100), nullable=True)
+    shipping_state = db.Column(db.String(50), nullable=True)
+    shipping_postal_code = db.Column(db.String(20), nullable=True)
+    shipping_country = db.Column(db.String(50), nullable=True)
+    
     # Relationships
     items = db.relationship('OrderItem', backref='order', lazy='joined', cascade='all, delete-orphan')
     
@@ -35,7 +49,10 @@ class Order(db.Model):
             'currency': self.currency,
             'status': self.status,
             'createdAt': self.created_at.isoformat() if self.created_at else None,
-            'updatedAt': self.updated_at.isoformat() if self.updated_at else None
+            'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+            'stripePaymentIntentId': self.stripe_payment_intent_id,
+            'customerEmail': self.customer_email,
+            'customerName': self.customer_name
         }
         if include_items:
             data['items'] = [item.to_dict() for item in self.items]

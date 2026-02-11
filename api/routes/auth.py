@@ -26,7 +26,7 @@ Usage:
 
 Dependencies:
     - Flask-JWT-Extended for token management
-    - bcrypt for password hashing (via User model)
+    - Werkzeug for password hashing (via User model)
     - models.User for user data access
 """
 from flask import Blueprint, jsonify, request

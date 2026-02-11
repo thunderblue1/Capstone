@@ -70,7 +70,7 @@
 
 .cart-header-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   padding: var(--space-md);
   border-bottom: 2px solid var(--color-sand);
   font-weight: 600;
@@ -82,10 +82,11 @@
 
 .cart-item {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   padding: var(--space-lg) var(--space-md);
   border-bottom: 1px solid var(--color-sand);
   align-items: center;
+  gap: var(--space-md);
 }
 
 .cart-item:last-of-type {
@@ -134,10 +135,62 @@
   margin: 0;
 }
 
+.cart-item__quantity {
+  display: flex;
+  justify-content: center;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  border: 1px solid var(--color-sand);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.quantity-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.quantity-btn:hover {
+  background: var(--color-sand);
+}
+
+.quantity-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.quantity-value {
+  min-width: 30px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
 .cart-item__price {
+  font-weight: 600;
+  color: var(--color-stone);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.cart-item__subtotal {
   font-weight: 600;
   color: var(--color-ink);
   font-size: 1.1rem;
+  text-align: center;
 }
 
 .cart-item__actions {
@@ -291,6 +344,20 @@
   }
 }
 
+@media (max-width: 900px) {
+  .cart-header-row {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
+  
+  .cart-item {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
+  
+  .cart-item__price {
+    display: none;
+  }
+}
+
 @media (max-width: 600px) {
   .cart-header-row {
     display: none;
@@ -301,7 +368,12 @@
     gap: var(--space-md);
   }
   
-  .cart-item__price {
+  .cart-item__quantity {
+    justify-content: flex-start;
+  }
+  
+  .cart-item__price,
+  .cart-item__subtotal {
     text-align: left;
   }
   
@@ -309,6 +381,10 @@
     justify-content: flex-start;
   }
 }
+
+
+
+
 
 
 

@@ -1,13 +1,17 @@
 import React, { FC } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import Footer from '../Footer/Footer';
 import StarRating from '../StarRating/StarRating';
-import type { Book, User } from '../../services/types';
+import type { Book, User, CartItem } from '../../services/types';
 import './CartPage.css';
 
+interface CartItemWithBook extends CartItem {
+  book: Book;
+}
+
 interface CartPageProps {
-  cartItems: Book[];
+  cartItems: CartItemWithBook[];
   onRemoveFromCart?: (bookId: string) => void;
   onUpdateQuantity?: (bookId: string, quantity: number) => void;
   onClearCart?: () => void;
@@ -27,6 +31,8 @@ const CartPage: FC<CartPageProps> = ({
   userAvatar = null,
   onLogout,
 }) => {
+  const navigate = useNavigate();
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -34,14 +40,24 @@ const CartPage: FC<CartPageProps> = ({
     }).format(price);
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.book.price * item.quantity), 0);
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + tax;
+  const totalItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleCheckout = () => {
+    if (!isLoggedIn) {
+      // Navigate to login with redirect info to return to checkout after login
+      navigate('/login?redirect=/checkout&from=checkout');
+      return;
+    }
+    navigate('/checkout');
+  };
 
   return (
     <div className="cart-page" data-testid="CartPage">
       <NavBar 
-        cartItemCount={cartItems.length}
+        cartItemCount={totalItemCount}
         isLoggedIn={isLoggedIn}
         user={user}
         userAvatar={userAvatar}
@@ -71,22 +87,24 @@ const CartPage: FC<CartPageProps> = ({
               <div className="cart-items">
                 <div className="cart-header-row">
                   <span>Product</span>
+                  <span>Quantity</span>
                   <span>Price</span>
+                  <span>Subtotal</span>
                   <span>Actions</span>
                 </div>
 
                 {cartItems.map((item) => (
-                  <div key={item.id} className="cart-item">
+                  <div key={item.bookId} className="cart-item">
                     <div className="cart-item__product">
                       <div className="cart-item__image">
                         <svg viewBox="0 0 80 100" className="book-thumb">
                           <defs>
-                            <linearGradient id={`cart-grad-${item.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                            <linearGradient id={`cart-grad-${item.bookId}`} x1="0%" y1="0%" x2="100%" y2="100%">
                               <stop offset="0%" stopColor="#00bcd4" />
                               <stop offset="100%" stopColor="#4caf50" />
                             </linearGradient>
                           </defs>
-                          <rect width="80" height="100" fill={`url(#cart-grad-${item.id})`} rx="4" />
+                          <rect width="80" height="100" fill={`url(#cart-grad-${item.bookId})`} rx="4" />
                           <ellipse cx="50" cy="35" rx="15" ry="10" fill="white" opacity="0.9" />
                           <ellipse cx="40" cy="38" rx="10" ry="8" fill="white" opacity="0.9" />
                           <polygon points="0,100 30,65 60,100" fill="#7cb342" />
@@ -94,22 +112,49 @@ const CartPage: FC<CartPageProps> = ({
                         </svg>
                       </div>
                       <div className="cart-item__details">
-                        <Link to={`/book/${item.id}`} className="cart-item__title">
-                          {item.title}
+                        <Link to={`/book/${item.book.id}`} className="cart-item__title">
+                          {item.book.title}
                         </Link>
-                        <p className="cart-item__author">by {item.author}</p>
+                        <p className="cart-item__author">by {item.book.author}</p>
                         <div className="cart-item__rating">
-                          <StarRating rating={item.averageRating} size="sm" />
+                          <StarRating rating={item.book.averageRating} size="sm" />
                         </div>
                       </div>
                     </div>
+                    <div className="cart-item__quantity">
+                      <div className="quantity-controls">
+                        <button
+                          className="quantity-btn"
+                          onClick={() => onUpdateQuantity?.(item.bookId, item.quantity - 1)}
+                          aria-label="Decrease quantity"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                          </svg>
+                        </button>
+                        <span className="quantity-value">{item.quantity}</span>
+                        <button
+                          className="quantity-btn"
+                          onClick={() => onUpdateQuantity?.(item.bookId, item.quantity + 1)}
+                          aria-label="Increase quantity"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                     <div className="cart-item__price">
-                      {formatPrice(item.price)}
+                      {formatPrice(item.book.price)}
+                    </div>
+                    <div className="cart-item__subtotal">
+                      {formatPrice(item.book.price * item.quantity)}
                     </div>
                     <div className="cart-item__actions">
                       <button 
                         className="remove-btn"
-                        onClick={() => onRemoveFromCart?.(item.id)}
+                        onClick={() => onRemoveFromCart?.(item.bookId)}
                         aria-label="Remove item"
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -135,7 +180,7 @@ const CartPage: FC<CartPageProps> = ({
               <div className="cart-summary">
                 <h2>Order Summary</h2>
                 <div className="summary-row">
-                  <span>Subtotal ({cartItems.length} items)</span>
+                  <span>Subtotal ({totalItemCount} {totalItemCount === 1 ? 'item' : 'items'})</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="summary-row">
@@ -151,7 +196,7 @@ const CartPage: FC<CartPageProps> = ({
                   <span>Total</span>
                   <span>{formatPrice(total)}</span>
                 </div>
-                <button className="checkout-btn">
+                <button className="checkout-btn" onClick={handleCheckout}>
                   Proceed to Checkout
                 </button>
                 <p className="secure-notice">
@@ -172,6 +217,10 @@ const CartPage: FC<CartPageProps> = ({
 };
 
 export default CartPage;
+
+
+
+
 
 
 
