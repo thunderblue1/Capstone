@@ -7,6 +7,7 @@ from .book import Book
 from .category import Category
 from .review import Review
 from .order import Order, OrderItem
+from .token_blocklist import TokenBlocklist
 
 __all__ = [
     'db',
@@ -16,6 +17,7 @@ __all__ = [
     'Category',
     'Review',
     'Order',
-    'OrderItem'
+    'OrderItem',
+    'TokenBlocklist',
 ]
 

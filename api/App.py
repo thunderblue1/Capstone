@@ -8,7 +8,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from config import config
 from limiter import limiter
-from models import init_db
+from models import init_db, TokenBlocklist, db
 from routes import register_routes
 
 
@@ -24,7 +24,7 @@ def create_app(config_name=None):
     
     # Initialize extensions
     CORS(app, origins=app.config.get('CORS_ORIGINS', ['http://localhost:5173']))
-    JWTManager(app)
+    jwt = JWTManager(app)
     
     # Rate limiting (default in-memory; set RATELIMIT_STORAGE_URI for Redis in production)
     limiter.init_app(app)
@@ -35,6 +35,14 @@ def create_app(config_name=None):
     
     # Initialize database
     init_db(app)
+
+    # Require revoked tokens to be rejected (session hijacking prevention)
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        jti = jwt_payload.get('jti')
+        if not jti:
+            return False
+        return db.session.query(TokenBlocklist.id).filter_by(jti=jti).first() is not None
     
     # Register API routes
     register_routes(app)

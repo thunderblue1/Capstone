@@ -12,7 +12,7 @@ def init_db(app):
     
     with app.app_context():
         # Import all models to register them
-        from . import User, Book, Category, Review, Order, OrderItem
+        from . import User, Book, Category, Review, Order, OrderItem, TokenBlocklist
         
         # Create tables if they don't exist
         db.create_all()

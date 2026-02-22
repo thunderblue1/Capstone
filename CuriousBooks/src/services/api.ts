@@ -176,34 +176,52 @@ export class ApiError extends Error {
   }
 }
 
+/** Single refresh in flight so concurrent 401s don't race and revoke the token */
+let refreshPromise: Promise<boolean> | null = null;
+
 /**
- * Refresh the access token
+ * Refresh the access token.
+ * Only one refresh runs at a time; concurrent callers wait for the same result (avoids double-refresh race).
  */
 async function refreshAccessToken(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+
   const refreshToken = getRefreshToken();
   if (!refreshToken) return false;
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: {
+  refreshPromise = (async () => {
+    try {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${refreshToken}`,
-      },
-    });
+      };
+      if (API_KEY) headers['X-API-Key'] = API_KEY;
 
-    if (!response.ok) {
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers,
+      });
+
+      if (!response.ok) {
+        clearTokens();
+        return false;
+      }
+
+      const data = await response.json();
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
+      if (data.refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+      }
+      return true;
+    } catch {
       clearTokens();
       return false;
+    } finally {
+      refreshPromise = null;
     }
+  })();
 
-    const data = await response.json();
-    localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
-    return true;
-  } catch {
-    clearTokens();
-    return false;
-  }
+  return refreshPromise;
 }
 
 // ============================================
@@ -424,9 +442,26 @@ export const authApi = {
   },
 
   /**
-   * Logout - clear tokens
+   * Logout - revoke tokens on server and clear local storage
    */
-  logout: (): void => {
+  logout: async (): Promise<void> => {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+    if (accessToken) {
+      try {
+        await fetch(`${API_BASE_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: refreshToken ? JSON.stringify({ refreshToken }) : '{}',
+        });
+      } catch {
+        // Ignore network errors; clear tokens anyway
+      }
+    }
     clearTokens();
   },
 

@@ -14,6 +14,7 @@ Endpoints:
     GET  /api/auth/me              - Get current user profile
     PUT  /api/auth/me              - Update current user profile
     POST /api/auth/change-password - Change user password
+    POST /api/auth/logout          - Revoke current token(s); send refreshToken in body to revoke both
 
 Authentication:
     Uses JWT (JSON Web Tokens) with access and refresh token pattern.
@@ -29,22 +30,30 @@ Dependencies:
     - Werkzeug for password hashing (via User model)
     - models.User for user data access
 """
+from datetime import datetime, timezone
+import jwt as pyjwt
 from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import (
-    create_access_token, 
+    create_access_token,
     create_refresh_token,
-    jwt_required, 
+    jwt_required,
     get_jwt_identity,
-    get_jwt
+    get_jwt,
 )
 from limiter import limiter
-from models import db, User
+from models import db, User, TokenBlocklist
 
 auth_bp = Blueprint('auth', __name__)
 
 # Stricter rate limit for auth (brute-force protection)
 def _auth_limit():
     return current_app.config.get('RATELIMIT_AUTH', '5 per minute')
+
+
+def _revoke_token(jti: str, token_type: str, exp=None):
+    """Add token jti to blocklist so it can no longer be used."""
+    db.session.add(TokenBlocklist(jti=jti, type=token_type, exp=exp))
+    db.session.commit()
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -129,12 +138,22 @@ def login():
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
-    """Refresh access token"""
+    """Refresh access token and rotate refresh token (old refresh token is revoked)."""
     identity = get_jwt_identity()
+    old_refresh = get_jwt()
+    old_jti = old_refresh.get('jti')
+    old_exp = old_refresh.get('exp')
+    exp_dt = datetime.fromtimestamp(old_exp, tz=timezone.utc) if old_exp else None
+
     access_token = create_access_token(identity=identity)
-    
+    new_refresh_token = create_refresh_token(identity=identity)
+
+    if old_jti:
+        _revoke_token(old_jti, 'refresh', exp=exp_dt)
+
     return jsonify({
-        'accessToken': access_token
+        'accessToken': access_token,
+        'refreshToken': new_refresh_token
     })
 
 
@@ -207,4 +226,43 @@ def change_password():
     db.session.commit()
     
     return jsonify({'message': 'Password changed successfully'})
+
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required(verify_type=False)
+def logout():
+    """
+    Revoke the token in the Authorization header.
+    Optionally send { "refreshToken": "..." } in body to revoke the refresh token as well,
+    so both tokens are invalidated in one call.
+    """
+    token = get_jwt()
+    jti = token.get('jti')
+    ttype = token.get('type', 'access')
+    exp = token.get('exp')
+    exp_dt = datetime.fromtimestamp(exp, tz=timezone.utc) if exp else None
+
+    if jti:
+        _revoke_token(jti, ttype, exp=exp_dt)
+
+    data = request.get_json() or {}
+    refresh_token_raw = data.get('refreshToken')
+    if refresh_token_raw:
+        try:
+            secret = current_app.config['JWT_SECRET_KEY']
+            payload = pyjwt.decode(
+                refresh_token_raw,
+                secret,
+                algorithms=['HS256'],
+                options={'verify_exp': False}
+            )
+            ref_jti = payload.get('jti')
+            ref_exp = payload.get('exp')
+            ref_exp_dt = datetime.fromtimestamp(ref_exp, tz=timezone.utc) if ref_exp else None
+            if ref_jti:
+                _revoke_token(ref_jti, 'refresh', exp=ref_exp_dt)
+        except Exception:
+            pass
+
+    return jsonify({'message': 'Logged out successfully'})
 
