@@ -6,8 +6,8 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-
 from config import config
+from limiter import limiter
 from models import init_db
 from routes import register_routes
 
@@ -26,12 +26,35 @@ def create_app(config_name=None):
     CORS(app, origins=app.config.get('CORS_ORIGINS', ['http://localhost:5173']))
     JWTManager(app)
     
+    # Rate limiting (default in-memory; set RATELIMIT_STORAGE_URI for Redis in production)
+    limiter.init_app(app)
+    app.config.setdefault('RATELIMIT_DEFAULT', '200 per hour')
+    if app.config.get('RATELIMIT_STORAGE_URI'):
+        limiter.storage_uri = app.config['RATELIMIT_STORAGE_URI']
+    limiter.default_limits = [app.config.get('RATELIMIT_DEFAULT', '200 per hour')]
+    
     # Initialize database
     init_db(app)
     
     # Register API routes
     register_routes(app)
-    
+
+    # Require API key on all /api/* requests when API_KEY is set (blocks outside clients)
+    api_key = app.config.get('API_KEY')
+    if api_key:
+
+        @app.before_request
+        def require_api_key():
+            from flask import request
+            if request.path == '/' or request.path == '/api/health':
+                return None
+            if request.path == '/api/orders/stripe/webhook':
+                return None  # Stripe calls this; verified by signature
+            if request.path.startswith('/api/'):
+                if request.headers.get('X-API-Key') != api_key:
+                    return jsonify({'error': 'Invalid or missing API key'}), 403
+            return None
+
     # Health check endpoint
     @app.route('/api/health', methods=['GET'])
     def health_check():

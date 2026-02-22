@@ -61,6 +61,7 @@ import type {
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'curiousbooks_access_token';
@@ -109,6 +110,10 @@ async function apiFetch<T>(
     'Content-Type': 'application/json',
     ...options.headers,
   };
+
+  if (API_KEY) {
+    (headers as Record<string, string>)['X-API-Key'] = API_KEY;
+  }
 
   // Add auth token if available
   const token = getAccessToken();

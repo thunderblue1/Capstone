@@ -29,7 +29,7 @@ Dependencies:
     - Werkzeug for password hashing (via User model)
     - models.User for user data access
 """
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import (
     create_access_token, 
     create_refresh_token,
@@ -37,12 +37,18 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_jwt
 )
+from limiter import limiter
 from models import db, User
 
 auth_bp = Blueprint('auth', __name__)
 
+# Stricter rate limit for auth (brute-force protection)
+def _auth_limit():
+    return current_app.config.get('RATELIMIT_AUTH', '5 per minute')
+
 
 @auth_bp.route('/register', methods=['POST'])
+@limiter.limit(_auth_limit)
 def register():
     """Register a new user"""
     data = request.get_json()
@@ -88,6 +94,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit(_auth_limit)
 def login():
     """Login with email and password"""
     data = request.get_json()
