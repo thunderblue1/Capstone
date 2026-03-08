@@ -47,9 +47,9 @@ def create_app(config_name=None):
     # Register API routes
     register_routes(app)
 
-    # Require API key on all /api/* requests when API_KEY is set (blocks outside clients)
-    api_key = app.config.get('API_KEY')
-    if api_key:
+    # Require API key on all /api/* when any key is configured (supports rotation via multiple keys)
+    valid_api_keys = app.config.get('API_KEYS') or frozenset()
+    if valid_api_keys:
 
         @app.before_request
         def require_api_key():
@@ -59,7 +59,7 @@ def create_app(config_name=None):
             if request.path == '/api/orders/stripe/webhook':
                 return None  # Stripe calls this; verified by signature
             if request.path.startswith('/api/'):
-                if request.headers.get('X-API-Key') != api_key:
+                if request.headers.get('X-API-Key') not in valid_api_keys:
                     return jsonify({'error': 'Invalid or missing API key'}), 403
             return None
 

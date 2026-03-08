@@ -28,8 +28,17 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=int(os.environ.get('JWT_ACCESS_HOURS', 24)))
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=int(os.environ.get('JWT_REFRESH_DAYS', 60)))
     
-    # API key (optional): when set, all /api/* requests must send X-API-Key with this value)
-    API_KEY = os.environ.get('API_KEY', '')
+    # API key(s) for /api/* (optional). When non-empty, requests must send X-API-Key matching one value.
+    # - API_KEYS: comma-separated list (e.g. "newkey,oldkey") for rotation; all are accepted.
+    # - API_KEY: single key; used if API_KEYS is not set (backward compatible).
+    _api_keys_raw = os.environ.get('API_KEYS', '').strip()
+    if _api_keys_raw:
+        API_KEYS = frozenset(k.strip() for k in _api_keys_raw.split(',') if k.strip())
+    else:
+        _single = os.environ.get('API_KEY', '').strip()
+        API_KEYS = frozenset({_single}) if _single else frozenset()
+    # Legacy: single key for clients that read API_KEY (e.g. first of set, or original single key)
+    API_KEY = next(iter(API_KEYS), '')
 
     # CORS
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')

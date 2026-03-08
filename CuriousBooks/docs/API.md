@@ -2,7 +2,8 @@
 
 Base URL: `http://localhost:5000/api` (or set via `VITE_API_URL`).
 
-When `API_KEY` is set on the server, include header: `X-API-Key: <your-api-key>` on all `/api/*` requests (except health and Stripe webhook).  
+When API keys are configured on the server, include header: `X-API-Key: <your-api-key>` on all `/api/*` requests (except health and Stripe webhook).  
+Use `API_KEY` for a single key or `API_KEYS` (comma-separated) to allow multiple keys for rotation (e.g. set `API_KEYS=newkey,oldkey`, deploy, then remove the old key).  
 For authenticated endpoints, also send: `Authorization: Bearer <access_token>`.
 
 ---
