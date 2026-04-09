@@ -55,10 +55,17 @@ DEALLOCATE PREPARE createIndexIfNotExists;
 UPDATE users SET role = 'customer' WHERE role IS NULL OR role = '';
 
 -- ============================================
--- Notes:
+-- Notes (RBAC - no privilege escalation):
 -- ============================================
--- To create a manager user, run:
--- UPDATE users SET role = 'manager' WHERE id = <user_id>;
+-- Allowed roles: 'customer', 'manager', 'admin'
+-- - customer: default; browse, order, review (own resources only)
+-- - manager:  can add/edit/delete products
+-- - admin:    full admin; can also list other users' data when required
+--
+-- Role must ONLY be set via DB or admin tooling (never from client).
+--
+-- To create a manager:  UPDATE users SET role = 'manager' WHERE id = <user_id>;
+-- To create an admin:   UPDATE users SET role = 'admin' WHERE id = <user_id>;
 --
 -- To check current roles:
 -- SELECT id, username, email, role FROM users;

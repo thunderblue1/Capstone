@@ -41,7 +41,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import desc
 from models import db, Order, OrderItem, Book
 from utils.tax import calculate_tax
-from utils.auth import manager_required
 
 orders_bp = Blueprint('orders', __name__)
 

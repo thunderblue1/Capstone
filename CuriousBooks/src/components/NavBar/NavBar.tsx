@@ -192,7 +192,7 @@ const NavBar: FC<NavBarProps> = ({
                     My Orders
                   </Link>
                   
-                  {user?.role === 'manager' && (
+                  {(user?.role === 'manager' || user?.role === 'admin') && (
                     <>
                       <div className="profile-dropdown__divider"></div>
                       <Link 

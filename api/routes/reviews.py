@@ -41,18 +41,30 @@ reviews_bp = Blueprint('reviews', __name__)
 
 
 @reviews_bp.route('/', methods=['GET'])
+@jwt_required(optional=True)
 def get_reviews():
-    """Get all reviews with optional filtering"""
+    """Get all reviews with optional filtering. Filtering by user_id allowed only for own id or admin."""
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
     book_id = request.args.get('book_id', type=int)
     user_id = request.args.get('user_id', type=int)
+
+    # Horizontal escalation prevention: listing another user's reviews only as owner or admin
+    if user_id is not None:
+        current_id = get_jwt_identity()
+        if not current_id:
+            return jsonify({'error': 'Authentication required to filter by user'}), 401
+        current_user = User.query.get(current_id)
+        if not current_user:
+            return jsonify({'error': 'User not found'}), 404
+        if str(current_user.id) != str(user_id) and not current_user.is_admin():
+            return jsonify({'error': 'Not authorized to list reviews for this user'}), 403
     
     query = Review.query
     
     if book_id:
         query = query.filter(Review.book_id == book_id)
-    if user_id:
+    if user_id is not None:
         query = query.filter(Review.user_id == user_id)
     
     query = query.order_by(desc(Review.created_at))

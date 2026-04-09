@@ -28,7 +28,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from sqlalchemy import or_, desc
 from models import db, Book, Category
-from utils.auth import manager_required
+from utils.auth import product_manager_required
 
 books_bp = Blueprint('books', __name__)
 
@@ -250,7 +250,7 @@ def get_genres():
 
 @books_bp.route('/', methods=['POST'])
 @jwt_required()
-@manager_required
+@product_manager_required
 def create_book():
     """
     Create a new book (Manager only)
@@ -321,7 +321,7 @@ def create_book():
 
 @books_bp.route('/<int:book_id>', methods=['PUT'])
 @jwt_required()
-@manager_required
+@product_manager_required
 def update_book(book_id):
     """
     Update an existing book (Manager only)
@@ -383,7 +383,7 @@ def update_book(book_id):
 
 @books_bp.route('/<int:book_id>', methods=['DELETE'])
 @jwt_required()
-@manager_required
+@product_manager_required
 def delete_book(book_id):
     """
     Delete a book (Manager only)

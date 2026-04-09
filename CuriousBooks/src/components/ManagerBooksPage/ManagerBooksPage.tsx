@@ -89,7 +89,8 @@ const ManagerBooksPage: FC<ManagerBooksPageProps> = ({
       return;
     }
 
-    if (user?.role !== 'manager') {
+    const canManageBooks = user?.role === 'manager' || user?.role === 'admin';
+    if (!canManageBooks) {
       navigate('/');
       return;
     }
@@ -110,7 +111,7 @@ const ManagerBooksPage: FC<ManagerBooksPageProps> = ({
       logger.error.log(err, { component: 'ManagerBooksPage' });
       if (err instanceof ApiError) {
         if (err.status === 403) {
-          setError('Manager access required');
+          setError('Manager or admin access required');
           navigate('/');
         } else {
           setError(err.message || 'Failed to load books');

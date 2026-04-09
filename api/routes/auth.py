@@ -70,6 +70,10 @@ def register():
     for field in required:
         if field not in data:
             return jsonify({'error': f'{field} is required'}), 400
+
+    # Prevent vertical privilege escalation: never accept role from client
+    if data.get('role') is not None:
+        return jsonify({'error': 'Role cannot be set via registration'}), 400
     
     # Check if email or username already exists
     if User.query.filter_by(email=data['email']).first():
@@ -181,6 +185,10 @@ def update_current_user():
         return jsonify({'error': 'User not found'}), 404
     
     data = request.get_json()
+
+    # Prevent vertical privilege escalation: never allow client to change role
+    if data.get('role') is not None:
+        return jsonify({'error': 'Role cannot be changed via this endpoint'}), 400
     
     # Update allowed fields
     if 'firstName' in data:

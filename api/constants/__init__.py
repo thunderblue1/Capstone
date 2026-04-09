@@ -1,0 +1,8 @@
+from .roles import (
+    CUSTOMER,
+    MANAGER,
+    ADMIN,
+    ALL_ROLES,
+    PRODUCT_MANAGER_ROLES,
+)
+__all__ = ['CUSTOMER', 'MANAGER', 'ADMIN', 'ALL_ROLES', 'PRODUCT_MANAGER_ROLES']
