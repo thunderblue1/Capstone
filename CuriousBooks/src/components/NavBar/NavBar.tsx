@@ -1,4 +1,4 @@
-import React, { FC, useState, useRef, useEffect } from 'react';
+import { FC, useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import BookSearchBox from '../BookSearchBox/BookSearchBox';
 import type { User } from '../../services/types';

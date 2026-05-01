@@ -1,8 +1,9 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
+import type { ResultSectionProps } from './ResultSection';
 
 const LazyResultSection = lazy(() => import('./ResultSection'));
 
-const ResultSection = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const ResultSection = (props: ResultSectionProps) => (
   <Suspense fallback={null}>
     <LazyResultSection {...props} />
   </Suspense>

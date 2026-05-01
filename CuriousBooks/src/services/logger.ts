@@ -60,7 +60,7 @@ let batchTimer: ReturnType<typeof setTimeout> | null = null;
 /**
  * Send logs to the server
  */
-async function sendLogs(endpoint: string, data: Record<string, unknown>): Promise<void> {
+async function sendLogs(endpoint: string, data: object): Promise<void> {
   try {
     const response = await fetch(`${LOG_SERVER_URL}/api/logs/${endpoint}`, {
       method: 'POST',
@@ -68,7 +68,7 @@ async function sendLogs(endpoint: string, data: Record<string, unknown>): Promis
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        ...data,
+        ...(data as Record<string, unknown>),
         clientTimestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         url: window.location.href,
@@ -248,8 +248,13 @@ export const logger = {
    * Error logging
    */
   error: {
-    log: (error: Error | string, context: Record<string, unknown> = {}) => {
-      const message = error instanceof Error ? error.message : error;
+    log: (error: unknown, context: Record<string, unknown> = {}) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : String(error);
       const errorCode = context.errorCode as string || 'FRONTEND_ERROR';
 
       const logData: ErrorLogData = {
@@ -274,8 +279,13 @@ export const logger = {
       }
     },
 
-    critical: (error: Error | string, context: Record<string, unknown> = {}) => {
-      const message = error instanceof Error ? error.message : error;
+    critical: (error: unknown, context: Record<string, unknown> = {}) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : String(error);
 
       const logData: ErrorLogData = {
         message,

@@ -16,7 +16,7 @@
  * Access:
  *   Only accessible to users with 'manager' role
  */
-import React, { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import Footer from '../Footer/Footer';
@@ -194,7 +194,7 @@ const ManagerBooksPage: FC<ManagerBooksPageProps> = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     try {

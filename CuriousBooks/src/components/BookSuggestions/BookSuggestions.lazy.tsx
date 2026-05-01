@@ -1,8 +1,9 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
+import type { BookSuggestionsProps } from './BookSuggestions';
 
 const LazyBookSuggestions = lazy(() => import('./BookSuggestions'));
 
-const BookSuggestions = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const BookSuggestions = (props: BookSuggestionsProps) => (
   <Suspense fallback={null}>
     <LazyBookSuggestions {...props} />
   </Suspense>

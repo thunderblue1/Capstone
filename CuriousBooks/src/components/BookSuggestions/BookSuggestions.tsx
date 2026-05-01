@@ -1,9 +1,9 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import BookCard from '../BookCard/BookCard';
 import type { Book } from '../../services/types';
 import './BookSuggestions.css';
 
-interface BookSuggestionsProps {
+export interface BookSuggestionsProps {
   books: Book[];
   onAddToCart?: (book: Book) => void;
   isLoading?: boolean;

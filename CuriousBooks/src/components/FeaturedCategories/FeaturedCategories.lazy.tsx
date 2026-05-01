@@ -1,8 +1,8 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ComponentProps } from 'react';
 
 const LazyFeaturedCategories = lazy(() => import('./FeaturedCategories'));
 
-const FeaturedCategories = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const FeaturedCategories = (props: ComponentProps<typeof LazyFeaturedCategories>) => (
   <Suspense fallback={null}>
     <LazyFeaturedCategories {...props} />
   </Suspense>

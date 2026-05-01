@@ -1,8 +1,9 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
+import type { FeatureProductSectionProps } from './FeatureProductSection';
 
 const LazyFeatureProductSection = lazy(() => import('./FeatureProductSection'));
 
-const FeatureProductSection = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const FeatureProductSection = (props: FeatureProductSectionProps) => (
   <Suspense fallback={null}>
     <LazyFeatureProductSection {...props} />
   </Suspense>

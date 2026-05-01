@@ -1,6 +1,6 @@
-import React, { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   CardElement,
@@ -122,7 +122,7 @@ const CheckoutForm: FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.line1, formData.city, formData.state, formData.postalCode, formData.customerEmail, formData.customerName, formData.country]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     if (!stripe || !elements || !clientSecret || !paymentIntentId) {

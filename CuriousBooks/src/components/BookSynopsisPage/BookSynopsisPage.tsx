@@ -32,7 +32,7 @@
  * Usage:
  *   <Route path="/book/:id" element={<BookSynopsisPage {...props} />} />
  */
-import React, { FC, useState, useEffect, useCallback } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import StarRating from '../StarRating/StarRating';
@@ -55,7 +55,6 @@ interface BookSynopsisPageProps {
 }
 
 const BookSynopsisPage: FC<BookSynopsisPageProps> = ({ 
-  cartItems = [], 
   onAddToCart,
   isLoggedIn = false,
   user = null,

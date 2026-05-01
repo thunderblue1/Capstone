@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LandingPage from './components/LandingPage/LandingPage';
 import ResultsPage from './components/ResultsPage/ResultsPage';
@@ -68,7 +68,7 @@ function App() {
     setCartItems([]);
   }, []);
 
-  const handleLogin = useCallback((email: string, password: string, user?: User) => {
+  const handleLogin = useCallback((email: string, _password: string, user?: User) => {
     logger.application.info('Login successful', { email, component: 'App' });
     setIsLoggedIn(true);
     

@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import { FC, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BookSearchBox.css';
 
@@ -11,7 +11,7 @@ const BookSearchBox: FC<BookSearchBoxProps> = ({ initialQuery = '', onSearch }) 
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       if (onSearch) {

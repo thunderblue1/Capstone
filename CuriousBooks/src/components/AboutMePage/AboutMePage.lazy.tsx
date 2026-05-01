@@ -1,8 +1,8 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ComponentProps } from 'react';
 
 const LazyAboutMePage = lazy(() => import('./AboutMePage'));
 
-const AboutMePage = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const AboutMePage = (props: ComponentProps<typeof LazyAboutMePage>) => (
   <Suspense fallback={null}>
     <LazyAboutMePage {...props} />
   </Suspense>

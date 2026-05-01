@@ -1,8 +1,8 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ComponentProps } from 'react';
 
 const LazyNavBar = lazy(() => import('./NavBar'));
 
-const NavBar = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const NavBar = (props: ComponentProps<typeof LazyNavBar>) => (
   <Suspense fallback={null}>
     <LazyNavBar {...props} />
   </Suspense>

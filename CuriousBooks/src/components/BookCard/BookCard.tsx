@@ -1,10 +1,10 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { Link } from 'react-router-dom';
 import StarRating from '../StarRating/StarRating';
 import type { Book } from '../../services/types';
 import './BookCard.css';
 
-interface BookCardProps {
+export interface BookCardProps {
   book: Book;
   onAddToCart?: (book: Book) => void;
 }

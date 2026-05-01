@@ -1,6 +1,5 @@
-import React, { FC, useState } from 'react';
+import { FC, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import StarRating from '../StarRating/StarRating';
 import { reviewsApi } from '../../services/api';
 import { logger } from '../../services/logger';
 import type { Review, User } from '../../services/types';
@@ -41,7 +40,7 @@ const ReviewForm: FC<ReviewFormProps> = ({
     setHoverRating(0);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
     if (rating === 0) {

@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect } from 'react';
 import NavBar from '../NavBar/NavBar';
 import HeroBanner from '../HeroBanner/HeroBanner';
 import FeaturedCategories from '../FeaturedCategories/FeaturedCategories';
@@ -20,7 +20,6 @@ interface LandingPageProps {
 }
 
 const LandingPage: FC<LandingPageProps> = ({ 
-  cartItems = [], 
   onAddToCart,
   isLoggedIn = false,
   user = null,

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import NavBar from '../NavBar/NavBar';
 import Footer from '../Footer/Footer';
 import type { Book, User } from '../../services/types';
@@ -14,7 +14,6 @@ interface AboutMePageProps {
 }
 
 const AboutMePage: FC<AboutMePageProps> = ({ 
-  cartItems = [],
   isLoggedIn = false,
   user = null,
   userAvatar = null,

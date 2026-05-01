@@ -1,12 +1,13 @@
-import React, { FC, useState, useEffect } from 'react';
+import { FC, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import Footer from '../Footer/Footer';
 import { authApi, ApiError } from '../../services/api';
+import type { User } from '../../services/types';
 import './LoginPage.css';
 
 interface LoginPageProps {
-  onLogin?: (email: string, password: string) => void;
+  onLogin?: (email: string, password: string, user?: User) => void;
 }
 
 const LoginPage: FC<LoginPageProps> = ({ onLogin }) => {
@@ -22,9 +23,8 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin }) => {
   
   // Get redirect path from URL params
   const redirectPath = searchParams.get('redirect') || '/';
-  const fromCheckout = searchParams.get('from') === 'checkout';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 

@@ -35,7 +35,7 @@
  * Usage:
  *   <Route path="/search" element={<ResultsPage {...props} />} />
  */
-import React, { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import ResultSection from '../ResultSection/ResultSection';
@@ -57,7 +57,6 @@ interface ResultsPageProps {
 }
 
 const ResultsPage: FC<ResultsPageProps> = ({ 
-  cartItems = [], 
   onAddToCart,
   isLoggedIn = false,
   user = null,

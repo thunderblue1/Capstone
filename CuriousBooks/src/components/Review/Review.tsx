@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import StarRating from '../StarRating/StarRating';
 import type { Review as ReviewType } from '../../services/types';
 import './Review.css';

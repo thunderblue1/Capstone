@@ -1,9 +1,9 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import BookCard from '../BookCard/BookCard';
 import type { Book } from '../../services/types';
 import './ResultSection.css';
 
-interface ResultSectionProps {
+export interface ResultSectionProps {
   title: string;
   books: Book[];
   onAddToCart?: (book: Book) => void;
