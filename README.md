@@ -1,3 +1,7 @@
+# CuriousBooks API
+
+The Curious Books AI Recommender System is an e-commerce web application designed to improve the online book shopping experience by delivering personalized book recommendations based on user preferences and reading behavior. Traditional online bookstores often present users with an overwhelming number of options, which can lead to decision fatigue and abandoned searches. This project addresses that challenge by defining functional and non-functional requirements for a system that guides users toward relevant book selections in an efficient and intuitive manner. The system will support core e-commerce capabilities including user authentication, browsing and searching for books, viewing detailed book information, managing a shopping cart, and completing secure checkout processes. In addition, the system defines requirements for an intelligent recommendation feature that suggests books based on content similarity and patterns of user behavior. The outcome of this requirements specification is to provide a clear, structured foundation that guides the system’s design, development, and testing phases while ensuring alignment with user needs and business goals.
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -15,9 +19,9 @@ The React Compiler is not enabled on this template because of its impact on dev 
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 
-# CuriousBooks API
+# Curious Books API
 
-A Flask-based REST API backend for the CuriousBooks bookstore application.
+A Flask-based REST API backend for the Curious Books bookstore application.
 
 ## Features
 
@@ -173,7 +177,7 @@ To implement your own model:
 
 ## Frontend Integration
 
-The frontend (CuriousBooks) uses the API through the service layer in:
+The frontend (Curious Books) uses the API through the service layer in:
 - `CuriousBooks/src/services/api.ts` - API client
 - `CuriousBooks/src/services/types.ts` - TypeScript interfaces
 
