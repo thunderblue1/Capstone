@@ -423,7 +423,7 @@ const ManagerBooksPage: FC<ManagerBooksPageProps> = ({
                   <div className="form-group">
                     <label>Cover Image URL</label>
                     <input
-                      type="url"
+                      type="text"
                       value={formData.coverImageUrl}
                       onChange={(e) => setFormData({ ...formData, coverImageUrl: e.target.value })}
                     />
