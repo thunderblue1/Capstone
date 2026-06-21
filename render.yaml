@@ -16,18 +16,20 @@ services:
         value: production
       - key: PYTHON_VERSION
         value: "3.12.7"
-      # TiDB Cloud — TLS uses api/certs/isrgrootx1.pem automatically when host ends with .tidbcloud.com
-      - key: DB_HOST
+      # TiDB Cloud — TLS uses api/certs/isrgrootx1.pem when TIDB_CA_PATH is unset/invalid
+      - key: TIDB_HOST
         sync: false
-      - key: DB_PORT
+      - key: TIDB_PORT
         value: "4000"
-      - key: DB_USER
+      - key: TIDB_USER
         sync: false
-        # TiDB Cloud: full prefixed username from Connect dialog, e.g. 4CzX2YavwHHzQ2f.root — NOT just "root"
-      - key: DB_PASSWORD
+        # Full prefixed username from Connect dialog, e.g. 4CzX2YavwHHzQ2f.johnnymnemonic — NOT just "root"
+      - key: TIDB_PASSWORD
         sync: false
-      - key: DB_NAME
+      - key: TIDB_DB_NAME
         value: curious_books
+      - key: TIDB_ENABLE_SSL
+        value: "true"
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY

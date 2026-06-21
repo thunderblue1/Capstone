@@ -17,12 +17,28 @@ _DEFAULT_TIDB_CA = os.path.join(_CONFIG_DIR, 'certs', 'isrgrootx1.pem')
 _TIDB_HOST_SUFFIX = '.tidbcloud.com'
 
 
+def _env(*names, default=''):
+    """Return the first non-empty environment variable from names."""
+    for name in names:
+        value = os.environ.get(name)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return default
+
+
+def _env_bool(*names, default=False):
+    raw = _env(*names)
+    if not raw:
+        return default
+    return raw.lower() in ('1', 'true', 'yes', 'on')
+
+
 def _database_host():
     """Resolve database host from env vars or DATABASE_URL."""
-    host = (os.environ.get('DB_HOST') or '').strip()
+    host = _env('DB_HOST', 'TIDB_HOST')
     if host:
         return host
-    database_url = (os.environ.get('DATABASE_URL') or '').strip()
+    database_url = _env('DATABASE_URL')
     if database_url:
         parsed = urlparse(database_url)
         return parsed.hostname or ''
@@ -31,14 +47,26 @@ def _database_host():
 
 def _database_username():
     """Resolve database username from env vars or DATABASE_URL."""
-    user = (os.environ.get('DB_USER') or '').strip()
+    user = _env('DB_USER', 'TIDB_USER')
     if user:
         return user
-    database_url = (os.environ.get('DATABASE_URL') or '').strip()
+    database_url = _env('DATABASE_URL')
     if database_url:
         parsed = urlparse(database_url)
         return (parsed.username or '').strip()
     return 'root'
+
+
+def _database_password():
+    return _env('DB_PASSWORD', 'TIDB_PASSWORD')
+
+
+def _database_name():
+    return _env('DB_NAME', 'TIDB_DB_NAME', default='curiousbooks')
+
+
+def _database_port():
+    return int(_env('DB_PORT', 'TIDB_PORT', default='3306'))
 
 
 def _validate_tidb_credentials():
@@ -51,7 +79,7 @@ def _validate_tidb_credentials():
     raise ValueError(
         'TiDB Cloud requires a prefixed username such as "4CzX2YavwHHzQ2f.root", '
         f'not "{username or "(empty)"}". '
-        'In Render, set DB_USER to the full USERNAME from the TiDB Cloud Connect dialog. '
+        'Set TIDB_USER (or DB_USER) to the full USERNAME from the TiDB Cloud Connect dialog. '
         'If you use DATABASE_URL instead, include the prefixed username there too. '
         'See https://docs.pingcap.com/tidbcloud/select-cluster-tier#user-name-prefix'
     )
@@ -59,6 +87,14 @@ def _validate_tidb_credentials():
 
 def _requires_tidb_tls():
     return _database_host().endswith(_TIDB_HOST_SUFFIX)
+
+
+def _ssl_enabled():
+    if _env_bool('TIDB_ENABLE_SSL'):
+        return True
+    if _requires_tidb_tls():
+        return True
+    return bool(_env('DB_SSL_CA', 'TIDB_CA_PATH', 'CA_PATH'))
 
 
 def _resolve_ssl_ca_path(raw):
@@ -74,11 +110,15 @@ def _resolve_ssl_ca_path(raw):
 
 
 def _ssl_ca_path():
-    """Path to CA cert for TLS (TiDB Cloud). Accepts DB_SSL_CA or CA_PATH."""
-    raw = (os.environ.get('DB_SSL_CA') or os.environ.get('CA_PATH') or '').strip()
+    """Path to CA cert for TLS (TiDB Cloud)."""
+    if not _ssl_enabled():
+        return ''
+    raw = _env('DB_SSL_CA', 'TIDB_CA_PATH', 'CA_PATH')
     if raw:
-        return _resolve_ssl_ca_path(raw)
-    if _requires_tidb_tls() and os.path.isfile(_DEFAULT_TIDB_CA):
+        resolved = _resolve_ssl_ca_path(raw)
+        if os.path.isfile(resolved):
+            return resolved
+    if os.path.isfile(_DEFAULT_TIDB_CA):
         return _DEFAULT_TIDB_CA
     return ''
 
@@ -95,30 +135,35 @@ def _database_connect_args():
     }
 
 
+def _has_explicit_db_config():
+    return all([
+        _env('DB_HOST', 'TIDB_HOST'),
+        _env('DB_USER', 'TIDB_USER'),
+        _env('DB_PASSWORD', 'TIDB_PASSWORD'),
+        _env('DB_NAME', 'TIDB_DB_NAME'),
+    ])
+
+
 def _build_database_uri():
-    # Prefer explicit DB_* vars when set — avoids a stale DATABASE_URL overriding TiDB settings.
-    has_db_vars = all(
-        (os.environ.get(key) or '').strip()
-        for key in ('DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME')
-    )
-    if has_db_vars:
+    # Prefer explicit DB/TIDB vars — avoids a stale DATABASE_URL overriding settings.
+    if _has_explicit_db_config():
         return str(URL.create(
             drivername='mysql+pymysql',
-            username=os.environ.get('DB_USER', 'root'),
-            password=os.environ.get('DB_PASSWORD', ''),
-            host=os.environ.get('DB_HOST', 'localhost'),
-            port=int(os.environ.get('DB_PORT', '3306')),
-            database=os.environ.get('DB_NAME', 'curiousbooks'),
+            username=_database_username(),
+            password=_database_password(),
+            host=_database_host(),
+            port=_database_port(),
+            database=_database_name(),
         ))
-    if os.environ.get('DATABASE_URL'):
-        return os.environ.get('DATABASE_URL')
+    if _env('DATABASE_URL'):
+        return _env('DATABASE_URL')
     return str(URL.create(
         drivername='mysql+pymysql',
-        username=os.environ.get('DB_USER', 'root'),
-        password=os.environ.get('DB_PASSWORD', ''),
-        host=os.environ.get('DB_HOST', 'localhost'),
-        port=int(os.environ.get('DB_PORT', '3306')),
-        database=os.environ.get('DB_NAME', 'curiousbooks'),
+        username=_database_username(),
+        password=_database_password(),
+        host=_database_host(),
+        port=_database_port(),
+        database=_database_name(),
     ))
 
 
@@ -136,12 +181,12 @@ class Config:
     """Base configuration"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'curious-books-secret-key-change-in-production'
     
-    # Database
-    DB_HOST = os.environ.get('DB_HOST', 'localhost')
-    DB_PORT = os.environ.get('DB_PORT', '3306')
-    DB_USER = os.environ.get('DB_USER', 'root')
-    DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
-    DB_NAME = os.environ.get('DB_NAME', 'curiousbooks')
+    # Database (supports DB_* and TIDB_* env var names)
+    DB_HOST = _database_host()
+    DB_PORT = str(_database_port())
+    DB_USER = _database_username()
+    DB_PASSWORD = _database_password()
+    DB_NAME = _database_name()
     DB_SSL_CA = _ssl_ca_path()
 
     _validate_tidb_credentials()

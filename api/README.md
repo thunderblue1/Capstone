@@ -36,12 +36,16 @@ pip install -r requirements.txt
 ```env
 FLASK_ENV=development
 SECRET_KEY=your-secret-key
-DB_HOST=gateway01.us-west-2.prod.aws.tidbcloud.com
-DB_PORT=4000
-DB_USER=4CzX2YavwHHzQ2f.root
-DB_PASSWORD=your-tidb-password
-DB_NAME=curious_books
-DB_SSL_CA=certs/isrgrootx1.pem
+
+# TiDB Connection Parameters (DB_* names also supported)
+TIDB_HOST=gateway01.us-west-2.prod.aws.tidbcloud.com
+TIDB_PORT=4000
+TIDB_USER=4CzX2YavwHHzQ2f.root
+TIDB_PASSWORD=your-tidb-password
+TIDB_DB_NAME=curious_books
+TIDB_ENABLE_SSL=true
+TIDB_CA_PATH=certs/isrgrootx1.pem
+
 JWT_SECRET_KEY=your-jwt-secret
 CORS_ORIGINS=http://localhost:5173
 
@@ -53,7 +57,7 @@ STRIPE_SECRET_KEY=sk_test_51ShmmmKTQjdI7MupENFcBi5BsxFOEtA7eJxJaPfN3YP11LcjpLA9B
 
 **Important**: Never commit your `.env` file to version control. The Stripe keys should be kept secure.
 
-For TiDB Cloud, TLS is enabled automatically when `DB_HOST` ends with `.tidbcloud.com` (uses bundled `certs/isrgrootx1.pem`). Override with `DB_SSL_CA` (file path or PEM content) if needed.
+For TiDB Cloud, set `TIDB_ENABLE_SSL=true` (or use a `*.tidbcloud.com` host). The bundled `certs/isrgrootx1.pem` is used when `TIDB_CA_PATH` is missing or invalid.
 
 4. Run the server:
 ```bash
@@ -209,13 +213,13 @@ pytest
    ```
    Required env vars:
    - `FLASK_ENV=production`
-   - `DB_HOST`, `DB_PORT=4000`, `DB_USER`, `DB_PASSWORD`, `DB_NAME=curious_books`
-   - **`DB_USER` must be the full TiDB Cloud username including the cluster prefix**, e.g. `4CzX2YavwHHzQ2f.root` — not just `root`. Copy it from the TiDB Cloud **Connect** dialog.
+   - `TIDB_HOST`, `TIDB_PORT=4000`, `TIDB_USER`, `TIDB_PASSWORD`, `TIDB_DB_NAME=curious_books`, `TIDB_ENABLE_SSL=true`
+   - **`TIDB_USER` must be the full TiDB Cloud username including the cluster prefix**, e.g. `4CzX2YavwHHzQ2f.johnnymnemonic` — not just `root`. Copy it from the TiDB Cloud **Connect** dialog.
    - `CORS_ORIGINS=https://your-frontend.onrender.com` (comma-separated if multiple)
    - `SECRET_KEY`, `JWT_SECRET_KEY` (generate secure values)
    - Optional: `API_KEY` — if set, frontend must send matching `VITE_API_KEY`
 
-   TiDB Cloud requires TLS; the API auto-enables it for `*.tidbcloud.com` hosts using `certs/isrgrootx1.pem`. No `DB_SSL_CA` needed on Render unless you use a custom CA.
+   TiDB Cloud requires TLS; set `TIDB_ENABLE_SSL=true`. The bundled `certs/isrgrootx1.pem` is used when `TIDB_CA_PATH` is unset or invalid. Legacy `DB_*` env var names are also supported.
 
 2. **Frontend (Static Site)** — root directory `CuriousBooks`, build `npm ci && npm run build`, publish `dist`:
    - `VITE_API_URL=https://your-api.onrender.com/api`
