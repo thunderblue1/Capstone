@@ -53,7 +53,7 @@ STRIPE_SECRET_KEY=sk_test_51ShmmmKTQjdI7MupENFcBi5BsxFOEtA7eJxJaPfN3YP11LcjpLA9B
 
 **Important**: Never commit your `.env` file to version control. The Stripe keys should be kept secure.
 
-For TiDB Cloud, download the cluster CA from the Connect dialog and set `DB_SSL_CA` to its path. TLS is enabled automatically when that variable is set.
+For TiDB Cloud, TLS is enabled automatically when `DB_HOST` ends with `.tidbcloud.com` (uses bundled `certs/isrgrootx1.pem`). Override with `DB_SSL_CA` (file path or PEM content) if needed.
 
 4. Run the server:
 ```bash
@@ -201,7 +201,28 @@ The `Order` model has been extended to store:
 pytest
 ```
 
-### Production Deployment
+### Production Deployment (Render + TiDB Cloud)
+
+1. **Backend (Web Service)** — root directory `api`, start command:
+   ```bash
+   gunicorn App:app -w 2 -b 0.0.0.0:$PORT
+   ```
+   Required env vars:
+   - `FLASK_ENV=production`
+   - `DB_HOST`, `DB_PORT=4000`, `DB_USER`, `DB_PASSWORD`, `DB_NAME=curious_books`
+   - `CORS_ORIGINS=https://your-frontend.onrender.com` (comma-separated if multiple)
+   - `SECRET_KEY`, `JWT_SECRET_KEY` (generate secure values)
+   - Optional: `API_KEY` — if set, frontend must send matching `VITE_API_KEY`
+
+   TiDB Cloud requires TLS; the API auto-enables it for `*.tidbcloud.com` hosts using `certs/isrgrootx1.pem`. No `DB_SSL_CA` needed on Render unless you use a custom CA.
+
+2. **Frontend (Static Site)** — root directory `CuriousBooks`, build `npm ci && npm run build`, publish `dist`:
+   - `VITE_API_URL=https://your-api.onrender.com/api`
+   - `VITE_API_KEY` — same as backend `API_KEY` if configured
+
+See `render.yaml` for a Blueprint template.
+
+### Production Deployment (local)
 ```bash
 gunicorn App:app -w 4 -b 0.0.0.0:5000
 ```

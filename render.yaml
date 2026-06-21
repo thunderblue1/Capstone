@@ -1,0 +1,52 @@
+# Render Blueprint — CuriousBooks
+# Docs: https://render.com/docs/blueprint-spec
+#
+# After connecting this repo in Render, set secret env vars in the dashboard
+# (passwords, JWT keys, Stripe keys). Do NOT commit secrets.
+
+services:
+  - type: web
+    name: curiousbooks-api
+    runtime: python
+    rootDir: api
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn App:app -w 2 -b 0.0.0.0:$PORT
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      # TiDB Cloud — TLS uses api/certs/isrgrootx1.pem automatically when host ends with .tidbcloud.com
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: curious_books
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      # Comma-separated frontend origin(s), e.g. https://curiousbooks.onrender.com
+      - key: CORS_ORIGINS
+        sync: false
+      - key: API_KEY
+        generateValue: true
+
+  - type: web
+    name: curiousbooks-frontend
+    runtime: static
+    rootDir: CuriousBooks
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Set to your API URL, e.g. https://curiousbooks-api.onrender.com/api
+      - key: VITE_API_URL
+        sync: false
+      # Must match API_KEY on the backend service
+      - key: VITE_API_KEY
+        sync: false

@@ -2,7 +2,10 @@
 Configuration settings for the CuriousBooks API
 """
 import os
+import tempfile
 from datetime import timedelta
+from urllib.parse import urlparse
+
 from dotenv import load_dotenv
 from sqlalchemy.engine import URL
 
@@ -10,16 +13,46 @@ from sqlalchemy.engine import URL
 load_dotenv()
 
 _CONFIG_DIR = os.path.dirname(os.path.abspath(__file__))
+_DEFAULT_TIDB_CA = os.path.join(_CONFIG_DIR, 'certs', 'isrgrootx1.pem')
+_TIDB_HOST_SUFFIX = '.tidbcloud.com'
+
+
+def _database_host():
+    """Resolve database host from env vars or DATABASE_URL."""
+    host = (os.environ.get('DB_HOST') or '').strip()
+    if host:
+        return host
+    database_url = (os.environ.get('DATABASE_URL') or '').strip()
+    if database_url:
+        parsed = urlparse(database_url)
+        return parsed.hostname or ''
+    return 'localhost'
+
+
+def _requires_tidb_tls():
+    return _database_host().endswith(_TIDB_HOST_SUFFIX)
+
+
+def _resolve_ssl_ca_path(raw):
+    """Return a filesystem path to the CA cert (file path, PEM content, or bundled default)."""
+    if raw.startswith('-----BEGIN'):
+        fd, path = tempfile.mkstemp(prefix='tidb-ca-', suffix='.pem')
+        with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+            handle.write(raw)
+        return path
+    if os.path.isabs(raw):
+        return raw
+    return os.path.normpath(os.path.join(_CONFIG_DIR, raw))
 
 
 def _ssl_ca_path():
     """Path to CA cert for TLS (TiDB Cloud). Accepts DB_SSL_CA or CA_PATH."""
     raw = (os.environ.get('DB_SSL_CA') or os.environ.get('CA_PATH') or '').strip()
-    if not raw:
-        return ''
-    if os.path.isabs(raw):
-        return raw
-    return os.path.normpath(os.path.join(_CONFIG_DIR, raw))
+    if raw:
+        return _resolve_ssl_ca_path(raw)
+    if _requires_tidb_tls() and os.path.isfile(_DEFAULT_TIDB_CA):
+        return _DEFAULT_TIDB_CA
+    return ''
 
 
 def _database_connect_args():
