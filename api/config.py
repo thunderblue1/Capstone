@@ -4,9 +4,58 @@ Configuration settings for the CuriousBooks API
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
+from sqlalchemy.engine import URL
 
 # Load environment variables from .env file
 load_dotenv()
+
+_CONFIG_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def _ssl_ca_path():
+    """Path to CA cert for TLS (TiDB Cloud). Accepts DB_SSL_CA or CA_PATH."""
+    raw = (os.environ.get('DB_SSL_CA') or os.environ.get('CA_PATH') or '').strip()
+    if not raw:
+        return ''
+    if os.path.isabs(raw):
+        return raw
+    return os.path.normpath(os.path.join(_CONFIG_DIR, raw))
+
+
+def _database_connect_args():
+    """PyMySQL TLS options when a CA certificate path is configured."""
+    ca_path = _ssl_ca_path()
+    if not ca_path:
+        return {}
+    return {
+        'ssl_verify_cert': True,
+        'ssl_verify_identity': True,
+        'ssl_ca': ca_path,
+    }
+
+
+def _build_database_uri():
+    if os.environ.get('DATABASE_URL'):
+        return os.environ.get('DATABASE_URL')
+    return str(URL.create(
+        drivername='mysql+pymysql',
+        username=os.environ.get('DB_USER', 'root'),
+        password=os.environ.get('DB_PASSWORD', ''),
+        host=os.environ.get('DB_HOST', 'localhost'),
+        port=int(os.environ.get('DB_PORT', '3306')),
+        database=os.environ.get('DB_NAME', 'curiousbooks'),
+    ))
+
+
+def _build_engine_options():
+    connect_args = _database_connect_args()
+    if not connect_args:
+        return {}
+    return {
+        'connect_args': connect_args,
+        'pool_recycle': 300,  # TiDB Cloud closes idle connections
+    }
+
 
 class Config:
     """Base configuration"""
@@ -18,9 +67,10 @@ class Config:
     DB_USER = os.environ.get('DB_USER', 'root')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
     DB_NAME = os.environ.get('DB_NAME', 'curiousbooks')
-    
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+    DB_SSL_CA = _ssl_ca_path()
+
+    SQLALCHEMY_DATABASE_URI = _build_database_uri()
+    SQLALCHEMY_ENGINE_OPTIONS = _build_engine_options()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT Settings (longer = less frequent re-login; override with JWT_ACCESS_HOURS, JWT_REFRESH_DAYS)
@@ -79,6 +129,7 @@ class TestingConfig(Config):
     """Testing configuration"""
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 
 
 config = {

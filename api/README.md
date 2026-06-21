@@ -36,11 +36,12 @@ pip install -r requirements.txt
 ```env
 FLASK_ENV=development
 SECRET_KEY=your-secret-key
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your-password
-DB_NAME=curiousbooks
+DB_HOST=gateway01.us-west-2.prod.aws.tidbcloud.com
+DB_PORT=4000
+DB_USER=4CzX2YavwHHzQ2f.root
+DB_PASSWORD=your-tidb-password
+DB_NAME=curious_books
+DB_SSL_CA=certs/isrgrootx1.pem
 JWT_SECRET_KEY=your-jwt-secret
 CORS_ORIGINS=http://localhost:5173
 
@@ -51,6 +52,8 @@ STRIPE_SECRET_KEY=sk_test_51ShmmmKTQjdI7MupENFcBi5BsxFOEtA7eJxJaPfN3YP11LcjpLA9B
 ```
 
 **Important**: Never commit your `.env` file to version control. The Stripe keys should be kept secure.
+
+For TiDB Cloud, download the cluster CA from the Connect dialog and set `DB_SSL_CA` to its path. TLS is enabled automatically when that variable is set.
 
 4. Run the server:
 ```bash
