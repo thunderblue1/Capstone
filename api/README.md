@@ -210,6 +210,7 @@ pytest
    Required env vars:
    - `FLASK_ENV=production`
    - `DB_HOST`, `DB_PORT=4000`, `DB_USER`, `DB_PASSWORD`, `DB_NAME=curious_books`
+   - **`DB_USER` must be the full TiDB Cloud username including the cluster prefix**, e.g. `4CzX2YavwHHzQ2f.root` — not just `root`. Copy it from the TiDB Cloud **Connect** dialog.
    - `CORS_ORIGINS=https://your-frontend.onrender.com` (comma-separated if multiple)
    - `SECRET_KEY`, `JWT_SECRET_KEY` (generate secure values)
    - Optional: `API_KEY` — if set, frontend must send matching `VITE_API_KEY`

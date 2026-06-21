@@ -23,6 +23,7 @@ services:
         value: "4000"
       - key: DB_USER
         sync: false
+        # TiDB Cloud: full prefixed username from Connect dialog, e.g. 4CzX2YavwHHzQ2f.root — NOT just "root"
       - key: DB_PASSWORD
         sync: false
       - key: DB_NAME

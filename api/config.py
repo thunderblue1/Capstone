@@ -29,6 +29,34 @@ def _database_host():
     return 'localhost'
 
 
+def _database_username():
+    """Resolve database username from env vars or DATABASE_URL."""
+    user = (os.environ.get('DB_USER') or '').strip()
+    if user:
+        return user
+    database_url = (os.environ.get('DATABASE_URL') or '').strip()
+    if database_url:
+        parsed = urlparse(database_url)
+        return (parsed.username or '').strip()
+    return 'root'
+
+
+def _validate_tidb_credentials():
+    """Fail fast with a clear message when TiDB Cloud username format is wrong."""
+    if not _requires_tidb_tls():
+        return
+    username = _database_username()
+    if username and '.' in username:
+        return
+    raise ValueError(
+        'TiDB Cloud requires a prefixed username such as "4CzX2YavwHHzQ2f.root", '
+        f'not "{username or "(empty)"}". '
+        'In Render, set DB_USER to the full USERNAME from the TiDB Cloud Connect dialog. '
+        'If you use DATABASE_URL instead, include the prefixed username there too. '
+        'See https://docs.pingcap.com/tidbcloud/select-cluster-tier#user-name-prefix'
+    )
+
+
 def _requires_tidb_tls():
     return _database_host().endswith(_TIDB_HOST_SUFFIX)
 
@@ -68,6 +96,20 @@ def _database_connect_args():
 
 
 def _build_database_uri():
+    # Prefer explicit DB_* vars when set — avoids a stale DATABASE_URL overriding TiDB settings.
+    has_db_vars = all(
+        (os.environ.get(key) or '').strip()
+        for key in ('DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME')
+    )
+    if has_db_vars:
+        return str(URL.create(
+            drivername='mysql+pymysql',
+            username=os.environ.get('DB_USER', 'root'),
+            password=os.environ.get('DB_PASSWORD', ''),
+            host=os.environ.get('DB_HOST', 'localhost'),
+            port=int(os.environ.get('DB_PORT', '3306')),
+            database=os.environ.get('DB_NAME', 'curiousbooks'),
+        ))
     if os.environ.get('DATABASE_URL'):
         return os.environ.get('DATABASE_URL')
     return str(URL.create(
@@ -102,6 +144,7 @@ class Config:
     DB_NAME = os.environ.get('DB_NAME', 'curiousbooks')
     DB_SSL_CA = _ssl_ca_path()
 
+    _validate_tidb_credentials()
     SQLALCHEMY_DATABASE_URI = _build_database_uri()
     SQLALCHEMY_ENGINE_OPTIONS = _build_engine_options()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
