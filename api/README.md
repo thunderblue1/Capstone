@@ -37,14 +37,9 @@ pip install -r requirements.txt
 FLASK_ENV=development
 SECRET_KEY=your-secret-key
 
-# TiDB Connection Parameters (DB_* names also supported)
-TIDB_HOST=gateway01.us-west-2.prod.aws.tidbcloud.com
-TIDB_PORT=4000
-TIDB_USER=4CzX2YavwHHzQ2f.root
-TIDB_PASSWORD=your-tidb-password
-TIDB_DB_NAME=curious_books
+# Preferred: full connection string from TiDB Cloud Connect dialog
+TIDB_DATABASE_URL=mysql://4CzX2YavwHHzQ2f.root:your-password@gateway01.us-west-2.prod.aws.tidbcloud.com:4000/curious_books
 TIDB_ENABLE_SSL=true
-TIDB_CA_PATH=certs/isrgrootx1.pem
 
 JWT_SECRET_KEY=your-jwt-secret
 CORS_ORIGINS=http://localhost:5173
@@ -57,7 +52,7 @@ STRIPE_SECRET_KEY=sk_test_51ShmmmKTQjdI7MupENFcBi5BsxFOEtA7eJxJaPfN3YP11LcjpLA9B
 
 **Important**: Never commit your `.env` file to version control. The Stripe keys should be kept secure.
 
-For TiDB Cloud, set `TIDB_ENABLE_SSL=true` (or use a `*.tidbcloud.com` host). The bundled `certs/isrgrootx1.pem` is used when `TIDB_CA_PATH` is missing or invalid.
+`mysql://` URLs are auto-converted to `mysql+pymysql://` for SQLAlchemy. TiDB Cloud TLS uses the bundled `certs/isrgrootx1.pem` when `TIDB_ENABLE_SSL=true`.
 
 4. Run the server:
 ```bash
@@ -213,13 +208,14 @@ pytest
    ```
    Required env vars:
    - `FLASK_ENV=production`
-   - `TIDB_HOST`, `TIDB_PORT=4000`, `TIDB_USER`, `TIDB_PASSWORD`, `TIDB_DB_NAME=curious_books`, `TIDB_ENABLE_SSL=true`
-   - **`TIDB_USER` must be the full TiDB Cloud username including the cluster prefix**, e.g. `4CzX2YavwHHzQ2f.johnnymnemonic` — not just `root`. Copy it from the TiDB Cloud **Connect** dialog.
+   - `TIDB_DATABASE_URL=mysql://4CzX2YavwHHzQ2f.root:password@gateway01.us-west-2.prod.aws.tidbcloud.com:4000/curious_books`
+   - `TIDB_ENABLE_SSL=true`
+   - Remove separate `TIDB_HOST` / `TIDB_USER` / `TIDB_PASSWORD` vars if using the connection string
    - `CORS_ORIGINS=https://your-frontend.onrender.com` (comma-separated if multiple)
    - `SECRET_KEY`, `JWT_SECRET_KEY` (generate secure values)
    - Optional: `API_KEY` — if set, frontend must send matching `VITE_API_KEY`
 
-   TiDB Cloud requires TLS; set `TIDB_ENABLE_SSL=true`. The bundled `certs/isrgrootx1.pem` is used when `TIDB_CA_PATH` is unset or invalid. Legacy `DB_*` env var names are also supported.
+   Copy the full connection string from TiDB Cloud **Connect**. TLS uses the bundled `certs/isrgrootx1.pem`.
 
 2. **Frontend (Static Site)** — root directory `CuriousBooks`, build `npm ci && npm run build`, publish `dist`:
    - `VITE_API_URL=https://your-api.onrender.com/api`

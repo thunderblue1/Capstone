@@ -4,15 +4,15 @@ Configuration settings for the CuriousBooks API
 import os
 import tempfile
 from datetime import timedelta
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from dotenv import load_dotenv
 from sqlalchemy.engine import URL
 
-# Load environment variables from .env file
-load_dotenv()
-
+# Load environment variables from api/.env (local dev; Render uses dashboard env vars)
 _CONFIG_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(_CONFIG_DIR, '.env'))
+
 _DEFAULT_TIDB_CA = os.path.join(_CONFIG_DIR, 'certs', 'isrgrootx1.pem')
 _TIDB_HOST_SUFFIX = '.tidbcloud.com'
 
@@ -33,40 +33,92 @@ def _env_bool(*names, default=False):
     return raw.lower() in ('1', 'true', 'yes', 'on')
 
 
+def _normalize_secret(value):
+    """Strip whitespace and optional surrounding quotes from secrets."""
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+        value = value[1:-1].strip()
+    return value
+
+
+def _raw_connection_string():
+    """Full SQLAlchemy database URL from env (preferred)."""
+    return _normalize_secret(_env('TIDB_DATABASE_URL', 'DATABASE_URL', 'MYSQL_URL'))
+
+
+def _normalize_connection_string(url):
+    """Ensure PyMySQL driver and strip whitespace."""
+    url = url.strip()
+    if url.startswith('mysql://'):
+        return f'mysql+pymysql://{url[len("mysql://"):]}'
+    return url
+
+
+def _parsed_connection():
+    """Parse the configured connection string, if any."""
+    raw = _raw_connection_string()
+    if not raw:
+        return None
+    return urlparse(_normalize_connection_string(raw))
+
+
+def _uses_connection_string():
+    return _parsed_connection() is not None
+
+
 def _database_host():
-    """Resolve database host from env vars or DATABASE_URL."""
-    host = _env('DB_HOST', 'TIDB_HOST')
-    if host:
-        return host
-    database_url = _env('DATABASE_URL')
-    if database_url:
-        parsed = urlparse(database_url)
-        return parsed.hostname or ''
-    return 'localhost'
+    parsed = _parsed_connection()
+    if parsed and parsed.hostname:
+        return parsed.hostname
+    return _env('DB_HOST', 'TIDB_HOST', default='localhost')
 
 
 def _database_username():
-    """Resolve database username from env vars or DATABASE_URL."""
+    parsed = _parsed_connection()
+    if parsed and parsed.username:
+        return unquote(parsed.username)
     user = _env('DB_USER', 'TIDB_USER')
-    if user:
-        return user
-    database_url = _env('DATABASE_URL')
-    if database_url:
-        parsed = urlparse(database_url)
-        return (parsed.username or '').strip()
-    return 'root'
+    return user or 'root'
 
 
 def _database_password():
-    return _env('DB_PASSWORD', 'TIDB_PASSWORD')
+    parsed = _parsed_connection()
+    if parsed and parsed.password is not None:
+        return unquote(parsed.password)
+    return _normalize_secret(_env('DB_PASSWORD', 'TIDB_PASSWORD'))
 
 
 def _database_name():
+    parsed = _parsed_connection()
+    if parsed and parsed.path:
+        name = parsed.path.lstrip('/')
+        if name:
+            return unquote(name)
     return _env('DB_NAME', 'TIDB_DB_NAME', default='curiousbooks')
 
 
 def _database_port():
+    parsed = _parsed_connection()
+    if parsed and parsed.port:
+        return parsed.port
     return int(_env('DB_PORT', 'TIDB_PORT', default='3306'))
+
+
+def _validate_database_config():
+    """Refuse to start in production/cloud without an explicit database configuration."""
+    if _uses_connection_string() or _has_component_config():
+        return
+    running_on_render = _env_bool('RENDER') or bool(os.environ.get('RENDER_SERVICE_ID'))
+    if os.environ.get('FLASK_ENV') == 'production' or running_on_render:
+        raise ValueError(
+            'Database is not configured. The app tried to connect to localhost because '
+            'TIDB_DATABASE_URL is missing on Render.\n'
+            'In Render → Environment, add:\n'
+            '  TIDB_DATABASE_URL=mysql://4CzX2YavwHHzQ2f.root:YOUR_PASSWORD@gateway01.us-west-2.prod.aws.tidbcloud.com:4000/curious_books\n'
+            '  TIDB_ENABLE_SSL=true\n'
+            'Copy the full connection string from TiDB Cloud → Connect. '
+            'The api/.env file is not deployed to Render.'
+        )
 
 
 def _validate_tidb_credentials():
@@ -79,8 +131,7 @@ def _validate_tidb_credentials():
     raise ValueError(
         'TiDB Cloud requires a prefixed username such as "4CzX2YavwHHzQ2f.root", '
         f'not "{username or "(empty)"}". '
-        'Set TIDB_USER (or DB_USER) to the full USERNAME from the TiDB Cloud Connect dialog. '
-        'If you use DATABASE_URL instead, include the prefixed username there too. '
+        'Include it in TIDB_DATABASE_URL or set TIDB_USER / DB_USER. '
         'See https://docs.pingcap.com/tidbcloud/select-cluster-tier#user-name-prefix'
     )
 
@@ -135,7 +186,7 @@ def _database_connect_args():
     }
 
 
-def _has_explicit_db_config():
+def _has_component_config():
     return all([
         _env('DB_HOST', 'TIDB_HOST'),
         _env('DB_USER', 'TIDB_USER'),
@@ -145,8 +196,11 @@ def _has_explicit_db_config():
 
 
 def _build_database_uri():
-    # Prefer explicit DB/TIDB vars — avoids a stale DATABASE_URL overriding settings.
-    if _has_explicit_db_config():
+    """Build SQLAlchemy URI — connection string first, then component env vars."""
+    raw = _raw_connection_string()
+    if raw:
+        return _normalize_connection_string(raw)
+    if _has_component_config():
         return str(URL.create(
             drivername='mysql+pymysql',
             username=_database_username(),
@@ -155,8 +209,6 @@ def _build_database_uri():
             port=_database_port(),
             database=_database_name(),
         ))
-    if _env('DATABASE_URL'):
-        return _env('DATABASE_URL')
     return str(URL.create(
         drivername='mysql+pymysql',
         username=_database_username(),
@@ -177,11 +229,31 @@ def _build_engine_options():
     }
 
 
+def database_diagnostics():
+    """Safe connection summary for logs and health checks (no secrets)."""
+    if _uses_connection_string():
+        source = 'TIDB_DATABASE_URL / DATABASE_URL connection string'
+    elif _has_component_config():
+        source = 'TIDB_* / DB_* component env vars'
+    else:
+        source = 'defaults / partial env vars'
+
+    return {
+        'host': _database_host(),
+        'port': _database_port(),
+        'user': _database_username(),
+        'database': _database_name(),
+        'tlsEnabled': bool(_database_connect_args()),
+        'passwordLength': len(_database_password()),
+        'configSource': source,
+    }
+
+
 class Config:
     """Base configuration"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'curious-books-secret-key-change-in-production'
-    
-    # Database (supports DB_* and TIDB_* env var names)
+
+    # Database — set TIDB_DATABASE_URL (or DATABASE_URL) for a single connection string
     DB_HOST = _database_host()
     DB_PORT = str(_database_port())
     DB_USER = _database_username()
@@ -189,16 +261,17 @@ class Config:
     DB_NAME = _database_name()
     DB_SSL_CA = _ssl_ca_path()
 
+    _validate_database_config()
     _validate_tidb_credentials()
     SQLALCHEMY_DATABASE_URI = _build_database_uri()
     SQLALCHEMY_ENGINE_OPTIONS = _build_engine_options()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
     # JWT Settings (longer = less frequent re-login; override with JWT_ACCESS_HOURS, JWT_REFRESH_DAYS)
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-key-change-in-production'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=int(os.environ.get('JWT_ACCESS_HOURS', 24)))
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=int(os.environ.get('JWT_REFRESH_DAYS', 60)))
-    
+
     # API key(s) for /api/* (optional). When non-empty, requests must send X-API-Key matching one value.
     # - API_KEYS: comma-separated list (e.g. "newkey,oldkey") for rotation; all are accepted.
     # - API_KEY: single key; used if API_KEYS is not set (backward compatible).
@@ -213,15 +286,15 @@ class Config:
 
     # CORS
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
-    
+
     # Pagination
     DEFAULT_PAGE_SIZE = 20
     MAX_PAGE_SIZE = 100
-    
+
     # Recommender Service
     RECOMMENDER_ENABLED = os.environ.get('RECOMMENDER_ENABLED', 'false').lower() == 'true'
     RECOMMENDER_MODEL_PATH = os.environ.get('RECOMMENDER_MODEL_PATH', 'models/recommender')
-    
+
     # Rate limiting (default: 200/hour per IP; auth endpoints have stricter limits)
     RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '200 per hour')
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', '')  # e.g. redis:// for production
@@ -259,4 +332,3 @@ config = {
     'testing': TestingConfig,
     'default': DevelopmentConfig
 }
-

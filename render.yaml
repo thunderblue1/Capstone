@@ -16,18 +16,10 @@ services:
         value: production
       - key: PYTHON_VERSION
         value: "3.12.7"
-      # TiDB Cloud — TLS uses api/certs/isrgrootx1.pem when TIDB_CA_PATH is unset/invalid
-      - key: TIDB_HOST
+      # TiDB Cloud — paste full connection string from TiDB Connect dialog
+      - key: TIDB_DATABASE_URL
         sync: false
-      - key: TIDB_PORT
-        value: "4000"
-      - key: TIDB_USER
-        sync: false
-        # Full prefixed username from Connect dialog, e.g. 4CzX2YavwHHzQ2f.johnnymnemonic — NOT just "root"
-      - key: TIDB_PASSWORD
-        sync: false
-      - key: TIDB_DB_NAME
-        value: curious_books
+        # mysql://user:pass@host:4000/db — auto-converted to mysql+pymysql://; TLS via bundled CA cert
       - key: TIDB_ENABLE_SSL
         value: "true"
       - key: SECRET_KEY

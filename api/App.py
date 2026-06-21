@@ -2,14 +2,19 @@
 CuriousBooks API - Flask Backend
 Main application entry point
 """
+import logging
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from config import config
+from config import config, database_diagnostics
 from limiter import limiter
 from models import init_db, TokenBlocklist, db
 from routes import register_routes
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
+
+logger = logging.getLogger(__name__)
 
 
 def create_app(config_name=None):
@@ -32,7 +37,9 @@ def create_app(config_name=None):
     if app.config.get('RATELIMIT_STORAGE_URI'):
         limiter.storage_uri = app.config['RATELIMIT_STORAGE_URI']
     limiter.default_limits = [app.config.get('RATELIMIT_DEFAULT', '200 per hour')]
-    
+
+    logger.info('Database config: %s', database_diagnostics())
+
     # Initialize database
     init_db(app)
 
@@ -54,7 +61,7 @@ def create_app(config_name=None):
         @app.before_request
         def require_api_key():
             from flask import request
-            if request.path == '/' or request.path == '/api/health':
+            if request.path in ('/', '/api/health', '/api/health/db'):
                 return None
             if request.path == '/api/orders/stripe/webhook':
                 return None  # Stripe calls this; verified by signature
@@ -71,6 +78,24 @@ def create_app(config_name=None):
             'service': 'CuriousBooks API',
             'version': '1.0.0'
         })
+
+    @app.route('/api/health/db', methods=['GET'])
+    def health_check_db():
+        info = database_diagnostics()
+        try:
+            db.session.execute(text('SELECT 1'))
+            info['status'] = 'connected'
+            return jsonify(info)
+        except OperationalError as exc:
+            message = str(exc.orig) if getattr(exc, 'orig', None) else str(exc)
+            info['status'] = 'error'
+            info['error'] = message
+            if '1045' in message or 'Access denied' in message:
+                info['hint'] = (
+                    'Reset the TiDB password in TiDB Cloud Connect, update TIDB_PASSWORD on Render, '
+                    'and allow Render outbound IPs in TiDB Cloud → Settings → Networking.'
+                )
+            return jsonify(info), 503
     
     # Root endpoint
     @app.route('/')
