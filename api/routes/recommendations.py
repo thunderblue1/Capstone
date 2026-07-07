@@ -51,8 +51,6 @@ def get_recommendations():
     """
     Get book recommendations.
     
-    This is a placeholder that uses simple heuristics.
-    Replace with actual ML model predictions when ready.
     """
     limit = request.args.get('limit', 8, type=int)
     exclude_ids = request.args.getlist('exclude', type=int)
@@ -81,8 +79,6 @@ def get_personalized_recommendations():
     """
     Get personalized recommendations for the logged-in user.
     
-    This is a placeholder that uses simple collaborative filtering heuristics.
-    Replace with actual ML model when ready.
     """
     user_id = get_jwt_identity()
     limit = request.args.get('limit', 8, type=int)
@@ -157,8 +153,6 @@ def get_similar_books(book_id):
     """
     Get books similar to a specific book.
     
-    This is a placeholder using genre/category matching.
-    Replace with content-based filtering model when ready.
     """
     limit = request.args.get('limit', 4, type=int)
     
@@ -203,8 +197,6 @@ def get_search_recommendations():
     """
     Get recommendations based on search query context.
     
-    This is a placeholder for search-based recommendations.
-    Replace with actual ML model when ready.
     """
     query = request.args.get('q', '')
     limit = request.args.get('limit', 4, type=int)
