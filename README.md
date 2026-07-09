@@ -224,3 +224,10 @@ pytest
 gunicorn App:app -w 4 -b 0.0.0.0:5000
 ```
 
+### Running Backend Tests
+
+<img width="1251" height="780" alt="image" src="https://github.com/user-attachments/assets/3857a689-eef1-4e93-be70-1d6d575c569a" />
+
+### Running Fontend Tests
+
+<img width="854" height="627" alt="image" src="https://github.com/user-attachments/assets/e2f853d4-4e0c-410c-968b-35c115c7a52a" />
