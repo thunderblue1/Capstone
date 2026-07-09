@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { createMockBook } from '../../test/fixtures';
 import CartPage from './CartPage';
