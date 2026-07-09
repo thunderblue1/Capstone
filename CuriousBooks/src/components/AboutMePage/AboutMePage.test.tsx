@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithRouter as render } from '../../test/renderWithRouter';
 import '@testing-library/jest-dom';
 import AboutMePage from './AboutMePage';
 

@@ -324,11 +324,22 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     SQLALCHEMY_ENGINE_OPTIONS = {}
+    API_KEYS = frozenset()
+    API_KEY = ''
+    RATELIMIT_ENABLED = False
+    STRIPE_WEBHOOK_SECRET = 'whsec_test_secret'
+
+
+class TestingWithApiKeyConfig(TestingConfig):
+    """Testing configuration with API key middleware enabled (TC-25)."""
+    API_KEYS = frozenset({'test-api-key'})
+    API_KEY = 'test-api-key'
 
 
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
     'testing': TestingConfig,
+    'testing_with_api_key': TestingWithApiKeyConfig,
     'default': DevelopmentConfig
 }

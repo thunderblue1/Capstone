@@ -1,12 +1,13 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithRouter as render } from '../../test/renderWithRouter';
 import '@testing-library/jest-dom';
 import ResultsPage from './ResultsPage';
 
 describe('<ResultsPage />', () => {
-  test('it should mount', () => {
+  test('it should mount', async () => {
     render(<ResultsPage />);
 
-    const resultsPage = screen.getByTestId('ResultsPage');
+    const resultsPage = await screen.findByTestId('ResultsPage');
 
     expect(resultsPage).toBeInTheDocument();
   });
