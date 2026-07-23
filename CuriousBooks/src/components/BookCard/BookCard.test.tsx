@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import { renderWithRouter as render } from '../../test/renderWithRouter';
 import '@testing-library/jest-dom';
 import { createMockBook } from '../../test/fixtures';
