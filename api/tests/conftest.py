@@ -1,5 +1,6 @@
 """Shared fixtures for Curious Books API tests (TC-01 through TC-28)."""
 import os
+import shutil
 
 os.environ.setdefault('FLASK_ENV', 'testing')
 
@@ -9,14 +10,22 @@ from App import create_app
 from constants.roles import MANAGER
 from limiter import limiter
 from models import Book, Category, Order, OrderItem, User, db
+from services.recommender import reset_recommender_service
 
 
 @pytest.fixture
 def app():
     """Flask app with in-memory SQLite and rate limiting disabled."""
+    reset_recommender_service()
     application = create_app('testing')
     limiter.enabled = False
+    model_path = application.config.get('RECOMMENDER_MODEL_PATH')
+    if model_path and os.path.isdir(model_path):
+        shutil.rmtree(model_path, ignore_errors=True)
     yield application
+    reset_recommender_service()
+    if model_path and os.path.isdir(model_path):
+        shutil.rmtree(model_path, ignore_errors=True)
 
 
 @pytest.fixture
@@ -25,6 +34,7 @@ def client(app):
     with app.app_context():
         db.drop_all()
         db.create_all()
+    reset_recommender_service()
     return app.test_client()
 
 
@@ -61,7 +71,7 @@ def seed_data(app):
                 price=19.99,
                 stock_quantity=10,
                 genre='Fiction',
-                description='A gripping fiction adventure.',
+                description='A gripping fiction adventure through mysterious forests.',
                 category_id=fiction.id,
                 popularity_score=8.0,
                 average_rating=4.5,
@@ -73,7 +83,7 @@ def seed_data(app):
                 price=24.99,
                 stock_quantity=5,
                 genre='Science',
-                description='Non-fiction science primer.',
+                description='Non-fiction science primer covering physics and biology.',
                 category_id=nonfiction.id,
                 popularity_score=6.0,
                 average_rating=4.0,
@@ -85,8 +95,21 @@ def seed_data(app):
                 price=14.99,
                 stock_quantity=0,
                 genre='Fiction',
+                description='A fiction story that is currently unavailable.',
                 category_id=fiction.id,
                 popularity_score=1.0,
+            ),
+            Book(
+                title='Another Fiction Journey',
+                author='Alice Writer',
+                isbn_13='9786666666666',
+                price=18.50,
+                stock_quantity=7,
+                genre='Fiction',
+                description='A gripping fiction adventure with heroes and forests.',
+                category_id=fiction.id,
+                popularity_score=7.0,
+                average_rating=4.2,
             ),
         ]
         db.session.add_all(books)
@@ -98,6 +121,7 @@ def seed_data(app):
             'fiction_book_id': books[0].id,
             'science_book_id': books[1].id,
             'out_of_stock_book_id': books[2].id,
+            'fiction_book_2_id': books[3].id,
         }
 
 

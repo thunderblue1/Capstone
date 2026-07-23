@@ -30,6 +30,10 @@ instance/ # Contains application-specific configuration and data not meant for v
 # Environment variables
 .env
 
+# Trained recommender models
+models/recommender/*.pkl
+models/recommender_test/
+
 # Logs
 logs
 *.log

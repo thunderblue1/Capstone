@@ -12,6 +12,7 @@
  *   - Star rating display with average and review count
  *   - Price display with out-of-stock indicator
  *   - Add to cart functionality
+ *   - Content-based similar book suggestions
  *   - Customer reviews list
  *   - Review submission form (authenticated users only)
  * 
@@ -19,7 +20,8 @@
  *   1. Extracts book ID from URL params via useParams()
  *   2. Fetches book details via booksApi.getById()
  *   3. Fetches reviews via booksApi.getReviews()
- *   4. Cart actions propagate to parent via onAddToCart prop
+ *   4. Fetches similar books via recommendationsApi.getSimilar()
+ *   5. Cart actions propagate to parent via onAddToCart prop
  * 
  * Props:
  *   - cartItems: Current cart contents for navbar badge
@@ -38,8 +40,9 @@ import NavBar from '../NavBar/NavBar';
 import StarRating from '../StarRating/StarRating';
 import Review from '../Review/Review';
 import ReviewForm from '../ReviewForm/ReviewForm';
+import BookSuggestions from '../BookSuggestions/BookSuggestions';
 import Footer from '../Footer/Footer';
-import { booksApi } from '../../services/api';
+import { booksApi, recommendationsApi } from '../../services/api';
 import { logger } from '../../services/logger';
 import type { Book, Review as ReviewType, User } from '../../services/types';
 import './BookSynopsisPage.css';
@@ -69,7 +72,9 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
   const { id } = useParams<{ id: string }>();
   const [book, setBook] = useState<Book | null>(null);
   const [reviews, setReviews] = useState<ReviewType[]>([]);
+  const [similarBooks, setSimilarBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingSimilar, setIsLoadingSimilar] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   /* ─────────────────────────────────────────────────────────────
@@ -101,6 +106,7 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
       if (!id) return;
       
       setIsLoading(true);
+      setIsLoadingSimilar(true);
       setError(null);
       
       try {
@@ -111,6 +117,23 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
         // Fetch reviews for this book
         const reviewsResponse = await booksApi.getReviews(id);
         setReviews(reviewsResponse.reviews);
+
+        try {
+          const similarResponse = await recommendationsApi.getSimilar(id, 4);
+          setSimilarBooks(similarResponse.similar);
+        } catch (similarErr) {
+          logger.error.log(
+            similarErr instanceof Error ? similarErr : 'Failed to load similar books',
+            {
+              component: 'BookSynopsisPage',
+              errorCode: 'SIMILAR_BOOKS_ERROR',
+              bookId: id,
+            },
+          );
+          setSimilarBooks([]);
+        } finally {
+          setIsLoadingSimilar(false);
+        }
       } catch (err) {
         // Log error with context for debugging
         logger.error.log(err instanceof Error ? err : 'Failed to load book', {
@@ -120,6 +143,7 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
         });
         setError('Failed to load book details.');
         setBook(null);
+        setIsLoadingSimilar(false);
       } finally {
         setIsLoading(false);
       }
@@ -247,8 +271,32 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
                 </div>
                 <div className="meta-item">
                   <span className="meta-label">Genre:</span>
-                  <span className="meta-value">{book.genre}</span>
+                  <span className="meta-value">
+                    {book.genre ? (
+                      <Link
+                        to={`/search?q=${encodeURIComponent(book.genre)}`}
+                        className="meta-link"
+                      >
+                        {book.genre}
+                      </Link>
+                    ) : (
+                      'N/A'
+                    )}
+                  </span>
                 </div>
+                {book.category?.name && (
+                  <div className="meta-item">
+                    <span className="meta-label">Category:</span>
+                    <span className="meta-value">
+                      <Link
+                        to={`/search?category=${encodeURIComponent(book.category.name)}`}
+                        className="meta-link"
+                      >
+                        {book.category.name}
+                      </Link>
+                    </span>
+                  </div>
+                )}
                 <div className="meta-item">
                   <span className="meta-label">Page Count:</span>
                   <span className="meta-value">{book.pageCount} pages</span>
@@ -273,6 +321,30 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
                 <h3>Description</h3>
                 <p>{book.description}</p>
               </div>
+
+              {(book.category?.name || book.genre) && (
+                <div className="book-browse-recs">
+                  <p className="book-browse-recs__label">Looking for more like this?</p>
+                  <div className="book-browse-recs__links">
+                    {book.category?.name && (
+                      <Link
+                        to={`/search?category=${encodeURIComponent(book.category.name)}`}
+                        className="browse-recs-link"
+                      >
+                        Recommendations in {book.category.name}
+                      </Link>
+                    )}
+                    {book.genre && (
+                      <Link
+                        to={`/search?q=${encodeURIComponent(book.genre)}`}
+                        className="browse-recs-link browse-recs-link--secondary"
+                      >
+                        Browse {book.genre} books
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )}
               
               <div className="book-actions">
                 <button 
@@ -294,6 +366,14 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
             </div>
           </div>
         </section>
+
+        <BookSuggestions
+          books={similarBooks}
+          onAddToCart={onAddToCart}
+          isLoading={isLoadingSimilar}
+          title="Similar Books"
+          subtitle="Content-based matches from title, author, genre, and description"
+        />
 
         <section className="reviews-section">
           <div className="reviews-section__container">

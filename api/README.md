@@ -9,7 +9,7 @@ A Flask-based REST API backend for the CuriousBooks bookstore application.
 - **Authentication**: JWT-based user authentication
 - **Reviews**: User reviews and ratings
 - **Orders/Checkout**: Shopping cart validation and order management
-- **Recommendations**: Placeholder for ML-based book recommendations
+- **Recommendations**: Content-based (TF-IDF) recommendations with popularity fallback
 
 ## Getting Started
 
@@ -145,16 +145,28 @@ api/
 
 ## Recommender System
 
-The `services/recommender.py` file provides a framework for implementing ML-based recommendations:
+Content-based filtering is implemented with TF-IDF + cosine similarity on
+`title`, `author`, `genre`, `category`, and `description`.
 
-- **PopularityRecommender**: Simple popularity-based (implemented)
-- **ContentBasedRecommender**: TF-IDF/embeddings (placeholder)
-- **CollaborativeFilteringRecommender**: Matrix factorization (placeholder)
+- **PopularityRecommender**: Rank by `popularity_score` (fallback / cold start)
+- **ContentBasedRecommender**: Similar books, personalized profiles, search-context
+- **CollaborativeFilteringRecommender**: Placeholder for a later phase
 
-To implement your own model:
-1. Create a class inheriting from `BaseRecommender`
-2. Implement `train()`, `predict()`, and `get_recommendations()` methods
-3. Update `RecommenderService` to use your model
+Enable with environment variables:
+
+```env
+RECOMMENDER_ENABLED=true
+RECOMMENDER_MODEL_PATH=models/recommender
+```
+
+Train (or retrain) models from the current database:
+
+```bash
+python train_recommender.py
+```
+
+When enabled, recommendation routes train lazily on first use if no model is present.
+Heuristic SQL fallbacks remain when the flag is off or the model cannot fill results.
 
 ## Frontend Integration
 

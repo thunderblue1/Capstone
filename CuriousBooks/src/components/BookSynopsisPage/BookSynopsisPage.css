@@ -113,6 +113,69 @@
   color: var(--color-charcoal);
 }
 
+.meta-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.meta-link:hover {
+  color: var(--color-ink);
+}
+
+.book-browse-recs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f4e8 100%);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+.book-browse-recs__label {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.book-browse-recs__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.browse-recs-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  background: var(--color-primary);
+  color: var(--color-warm-white);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.browse-recs-link:hover {
+  background: #4a7c9b;
+  transform: translateY(-1px);
+}
+
+.browse-recs-link--secondary {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+
+.browse-recs-link--secondary:hover {
+  background: var(--color-warm-white);
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
 .book-price-section {
   padding: var(--space-lg);
   background: linear-gradient(135deg, var(--color-parchment) 0%, var(--color-cream) 100%);

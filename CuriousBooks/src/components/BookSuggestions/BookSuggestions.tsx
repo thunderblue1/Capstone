@@ -7,24 +7,32 @@ export interface BookSuggestionsProps {
   books: Book[];
   onAddToCart?: (book: Book) => void;
   isLoading?: boolean;
+  title?: string;
+  subtitle?: string;
 }
 
 const BookSuggestions: FC<BookSuggestionsProps> = ({ 
   books, 
   onAddToCart,
-  isLoading = false
+  isLoading = false,
+  title = 'Recommended Books',
+  subtitle = 'Personalized picks based on your search and reading history',
 }) => {
+  if (books.length === 0 && !isLoading) {
+    return null;
+  }
+
   if (isLoading) {
     return (
       <section className="book-suggestions book-suggestions--loading" data-testid="BookSuggestions">
         <div className="book-suggestions__container">
           <h2 className="book-suggestions__title">
             <span className="ai-badge">AI</span>
-            Recommended Books
+            {title}
           </h2>
           <div className="book-suggestions__loading">
             <div className="loading-pulse"></div>
-            <p>Our AI is finding personalized recommendations...</p>
+            <p>Finding recommendations...</p>
           </div>
         </div>
       </section>
@@ -36,10 +44,10 @@ const BookSuggestions: FC<BookSuggestionsProps> = ({
       <div className="book-suggestions__container">
         <h2 className="book-suggestions__title">
           <span className="ai-badge">AI</span>
-          Recommended Books
+          {title}
         </h2>
         <p className="book-suggestions__subtitle">
-          Personalized picks based on your search and reading history
+          {subtitle}
         </p>
         <div className="book-suggestions__grid">
           {books.map((book) => (

@@ -102,17 +102,23 @@ const ResultsPage: FC<ResultsPageProps> = ({
           const categoryResponse = await booksApi.getByCategory(category);
           setResults(categoryResponse.books);
           
-          // Get recommendations based on category
+          // Personalized when logged in; otherwise popularity
           const excludeIds = categoryResponse.books.map(b => b.id);
-          const recsResponse = await recommendationsApi.get(4, excludeIds);
-          setRecommendations(recsResponse.recommendations);
+          const recsResponse = isLoggedIn
+            ? await recommendationsApi.getPersonalized(4)
+            : await recommendationsApi.get(4, excludeIds);
+          setRecommendations(
+            recsResponse.recommendations.filter((book) => !excludeIds.includes(book.id)).slice(0, 4),
+          );
           setIsLoadingRecommendations(false);
         } else {
           // No query or category - show all books
           const allBooksResponse = await booksApi.getAll({ perPage: 20 });
           setResults(allBooksResponse.books);
           
-          const recsResponse = await recommendationsApi.get(4);
+          const recsResponse = isLoggedIn
+            ? await recommendationsApi.getPersonalized(4)
+            : await recommendationsApi.get(4);
           setRecommendations(recsResponse.recommendations);
           setIsLoadingRecommendations(false);
         }
@@ -130,7 +136,7 @@ const ResultsPage: FC<ResultsPageProps> = ({
     };
     
     loadResults();
-  }, [query, category]);
+  }, [query, category, isLoggedIn]);
 
   const searchTitle = query 
     ? `Search results for "${query}"`

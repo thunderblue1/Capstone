@@ -328,6 +328,10 @@ class TestingConfig(Config):
     API_KEY = ''
     RATELIMIT_ENABLED = False
     STRIPE_WEBHOOK_SECRET = 'whsec_test_secret'
+    RECOMMENDER_ENABLED = True
+    RECOMMENDER_MODEL_PATH = os.path.join(
+        os.path.dirname(__file__), 'models', 'recommender_test'
+    )
 
 
 class TestingWithApiKeyConfig(TestingConfig):
