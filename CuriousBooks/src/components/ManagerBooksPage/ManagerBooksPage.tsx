@@ -421,12 +421,14 @@ const ManagerBooksPage: FC<ManagerBooksPageProps> = ({
                   </div>
 
                   <div className="form-group">
-                    <label>Cover Image URL</label>
+                    <label>Cover Image Filename</label>
                     <input
                       type="text"
+                      placeholder="e.g. the-hobbit.jpg"
                       value={formData.coverImageUrl}
                       onChange={(e) => setFormData({ ...formData, coverImageUrl: e.target.value })}
                     />
+                    <small>File must exist in assets/book_cover_images/</small>
                   </div>
 
                   <div className="form-group">

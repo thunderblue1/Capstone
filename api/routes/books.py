@@ -269,7 +269,7 @@ def create_book():
             "price": 29.99,
             "currency": "USD",
             "stockQuantity": 100,
-            "coverImageUrl": "https://example.com/image.jpg",
+            "coverImageUrl": "the-hobbit.jpg",
             "categoryId": 1
         }
     
@@ -306,7 +306,7 @@ def create_book():
         price=data['price'],
         currency=data.get('currency', 'USD'),
         stock_quantity=data.get('stockQuantity', 0),
-        cover_image_url=data.get('coverImageUrl'),
+        cover_image_url=Book.cover_filename(data.get('coverImageUrl')) if data.get('coverImageUrl') else None,
         category_id=data.get('categoryId')
     )
     
@@ -369,7 +369,9 @@ def update_book(book_id):
     if 'stockQuantity' in data:
         book.stock_quantity = data['stockQuantity']
     if 'coverImageUrl' in data:
-        book.cover_image_url = data['coverImageUrl']
+        book.cover_image_url = (
+            Book.cover_filename(data['coverImageUrl']) if data['coverImageUrl'] else None
+        )
     if 'categoryId' in data:
         book.category_id = data['categoryId']
     

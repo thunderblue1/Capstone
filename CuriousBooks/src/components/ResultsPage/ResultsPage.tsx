@@ -7,7 +7,7 @@
  *   Includes recommendation suggestions and pagination support.
  * 
  * Features:
- *   - Search results display with query highlighting
+ *   - First row of search results (4 books), then recommendations, then remaining results
  *   - Category-based book filtering
  *   - Book recommendations based on search context
  *   - Additional results section for expanded browsing
@@ -22,7 +22,7 @@
  *   1. Reads search params via useSearchParams()
  *   2. Fetches results via booksApi.search() or booksApi.getByCategory()
  *   3. Fetches recommendations via recommendationsApi
- *   4. Displays in ResultSection and BookSuggestions components
+ *   4. Shows first 4 results, then BookSuggestions, then remaining results
  * 
  * Props:
  *   - cartItems: Current cart for navbar badge
@@ -144,6 +144,10 @@ const ResultsPage: FC<ResultsPageProps> = ({
       ? `Books in ${category}`
       : 'All Books';
 
+  const FIRST_ROW_COUNT = 4;
+  const firstRowResults = results.slice(0, FIRST_ROW_COUNT);
+  const remainingResults = [...results.slice(FIRST_ROW_COUNT), ...moreResults];
+
   return (
     <div className="results-page" data-testid="ResultsPage">
       <NavBar 
@@ -174,11 +178,13 @@ const ResultsPage: FC<ResultsPageProps> = ({
           </div>
         ) : (
           <>
-            <ResultSection 
-              title="Book Search Results" 
-              books={results}
-              onAddToCart={onAddToCart}
-            />
+            {firstRowResults.length > 0 && (
+              <ResultSection 
+                title="Book Search Results" 
+                books={firstRowResults}
+                onAddToCart={onAddToCart}
+              />
+            )}
 
             <BookSuggestions 
               books={recommendations}
@@ -186,10 +192,10 @@ const ResultsPage: FC<ResultsPageProps> = ({
               isLoading={isLoadingRecommendations}
             />
 
-            {moreResults.length > 0 && (
+            {remainingResults.length > 0 && (
               <ResultSection 
                 title="More Book Search Results" 
-                books={moreResults}
+                books={remainingResults}
                 onAddToCart={onAddToCart}
                 variant="highlighted"
               />

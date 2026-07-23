@@ -34,6 +34,14 @@ class Book(db.Model):
     reviews = db.relationship('Review', backref='book', lazy='dynamic')
     order_items = db.relationship('OrderItem', backref='book', lazy='dynamic')
     
+    @staticmethod
+    def cover_filename(cover_image_url):
+        """Return just the cover filename (not a path). Defaults to default.jpg."""
+        if not cover_image_url:
+            return 'default.jpg'
+        filename = str(cover_image_url).replace('\\', '/').rsplit('/', 1)[-1].strip()
+        return filename or 'default.jpg'
+
     def to_dict(self, include_category=False):
         """Convert to dictionary for API responses - matches frontend Book interface"""
         data = {
@@ -50,7 +58,7 @@ class Book(db.Model):
             'price': float(self.price) if self.price else 0,
             'currency': self.currency,
             'stockQuantity': self.stock_quantity,
-            'imageUrl': self.cover_image_url or '/images/default-book.jpg',
+            'imageUrl': self.cover_filename(self.cover_image_url),
             'averageRating': self.average_rating or 0,
             'reviewCount': self.review_count or 0,
             'popularityScore': self.popularity_score or 0,

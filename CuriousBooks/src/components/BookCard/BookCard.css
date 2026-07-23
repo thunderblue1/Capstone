@@ -32,7 +32,8 @@
   justify-content: center;
 }
 
-.book-cover-placeholder {
+.book-cover-placeholder,
+.book-card__cover-image {
   width: 100%;
   height: 100%;
   object-fit: cover;

@@ -1,6 +1,7 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StarRating from '../StarRating/StarRating';
+import { resolveBookCoverUrl } from '../../services/bookCovers';
 import type { Book } from '../../services/types';
 import './BookCard.css';
 
@@ -10,6 +11,10 @@ export interface BookCardProps {
 }
 
 const BookCard: FC<BookCardProps> = ({ book, onAddToCart }) => {
+  const [imageFailed, setImageFailed] = useState(false);
+  const coverSrc = resolveBookCoverUrl(book.imageUrl);
+  const showCover = Boolean(coverSrc) && !imageFailed;
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -26,23 +31,31 @@ const BookCard: FC<BookCardProps> = ({ book, onAddToCart }) => {
     <div className="book-card" data-testid="BookCard">
       <div className="book-card__image-container">
         <div className="book-card__image-placeholder">
-          {/* Placeholder SVG for book cover */}
-          <svg viewBox="0 0 120 160" className="book-cover-placeholder">
-            <defs>
-              <linearGradient id={`grad-${book.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00bcd4" />
-                <stop offset="100%" stopColor="#4caf50" />
-              </linearGradient>
-            </defs>
-            <rect width="120" height="160" fill={`url(#grad-${book.id})`} />
-            {/* Cloud */}
-            <ellipse cx="70" cy="55" rx="25" ry="18" fill="white" opacity="0.9" />
-            <ellipse cx="55" cy="58" rx="18" ry="14" fill="white" opacity="0.9" />
-            <ellipse cx="85" cy="60" rx="15" ry="12" fill="white" opacity="0.9" />
-            {/* Hills */}
-            <polygon points="0,160 40,100 80,160" fill="#7cb342" />
-            <polygon points="50,160 100,90 120,160" fill="#558b2f" />
-          </svg>
+          {showCover ? (
+            <img
+              src={coverSrc!}
+              alt={book.title}
+              className="book-card__cover-image"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <svg viewBox="0 0 120 160" className="book-cover-placeholder">
+              <defs>
+                <linearGradient id={`grad-${book.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#00bcd4" />
+                  <stop offset="100%" stopColor="#4caf50" />
+                </linearGradient>
+              </defs>
+              <rect width="120" height="160" fill={`url(#grad-${book.id})`} />
+              {/* Cloud */}
+              <ellipse cx="70" cy="55" rx="25" ry="18" fill="white" opacity="0.9" />
+              <ellipse cx="55" cy="58" rx="18" ry="14" fill="white" opacity="0.9" />
+              <ellipse cx="85" cy="60" rx="15" ry="12" fill="white" opacity="0.9" />
+              {/* Hills */}
+              <polygon points="0,160 40,100 80,160" fill="#7cb342" />
+              <polygon points="50,160 100,90 120,160" fill="#558b2f" />
+            </svg>
+          )}
         </div>
       </div>
 

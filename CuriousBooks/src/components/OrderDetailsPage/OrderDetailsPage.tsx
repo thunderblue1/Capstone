@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import Footer from '../Footer/Footer';
 import { ordersApi, ApiError } from '../../services/api';
+import { resolveBookCoverUrl } from '../../services/bookCovers';
 import { logger } from '../../services/logger';
 import type { Order, User } from '../../services/types';
 import './OrderDetailsPage.css';
@@ -201,7 +202,11 @@ const OrderDetailsPage: FC<OrderDetailsPageProps> = ({
               <div className="order-section">
                 <h2>Items</h2>
                 <div className="order-items-list">
-                  {order.items.map((item) => (
+                  {order.items.map((item) => {
+                    const coverSrc = item.book
+                      ? resolveBookCoverUrl(item.book.imageUrl)
+                      : null;
+                    return (
                     <div key={item.id} className="order-item">
                       <div className="item-info">
                         {item.book && (
@@ -215,21 +220,21 @@ const OrderDetailsPage: FC<OrderDetailsPageProps> = ({
                           {formatPrice(item.unitPrice)} × {item.quantity} = {formatPrice(item.subtotal || 0)}
                         </p>
                       </div>
-                      {item.book && (
+                      {item.book && coverSrc && (
                         <div className="item-image">
                           <img
-                            src={item.book.imageUrl || 'https://via.placeholder.com/80x120?text=Book'}
+                            src={coverSrc}
                             alt={item.book.title}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.src = 'https://via.placeholder.com/80x120?text=Book';
-                              target.style.backgroundColor = '#f0f0f0';
+                              target.style.display = 'none';
                             }}
                           />
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

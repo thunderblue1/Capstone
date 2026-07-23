@@ -4,6 +4,7 @@
 export * from './types';
 export * from './api';
 export { default as api } from './api';
+export * from './bookCovers';
 export * from './logger';
 export { default as logger } from './logger';
 

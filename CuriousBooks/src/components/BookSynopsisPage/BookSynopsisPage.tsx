@@ -43,6 +43,7 @@ import ReviewForm from '../ReviewForm/ReviewForm';
 import BookSuggestions from '../BookSuggestions/BookSuggestions';
 import Footer from '../Footer/Footer';
 import { booksApi, recommendationsApi } from '../../services/api';
+import { resolveBookCoverUrl } from '../../services/bookCovers';
 import { logger } from '../../services/logger';
 import type { Book, Review as ReviewType, User } from '../../services/types';
 import './BookSynopsisPage.css';
@@ -210,6 +211,8 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
     );
   }
 
+  const coverSrc = resolveBookCoverUrl(book.imageUrl);
+
   return (
     <div className="book-synopsis-page" data-testid="BookSynopsisPage">
       <NavBar 
@@ -224,8 +227,8 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
           <div className="synopsis-section__container">
             <div className="synopsis-section__image">
               <div className="book-cover-large">
-                {book.imageUrl && !book.imageUrl.includes('default') ? (
-                  <img src={book.imageUrl} alt={book.title} className="book-cover-image" />
+                {coverSrc ? (
+                  <img src={coverSrc} alt={book.title} className="book-cover-image" />
                 ) : (
                   <svg viewBox="0 0 200 280" className="book-cover-placeholder-large">
                     <defs>

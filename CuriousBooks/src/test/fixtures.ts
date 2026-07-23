@@ -16,7 +16,7 @@ export function createMockBook(overrides: Partial<Book> = {}): Book {
     price: 9.99,
     currency: 'USD',
     stockQuantity: 10,
-    imageUrl: '',
+    imageUrl: 'default.jpg',
     averageRating: 4,
     reviewCount: 2,
     popularityScore: 1,

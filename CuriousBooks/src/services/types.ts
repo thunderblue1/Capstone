@@ -17,6 +17,7 @@ export interface Book {
   price: number;
   currency: string;
   stockQuantity: number;
+  /** Cover filename only (e.g. "the-hobbit.jpg"), resolved under assets/book_cover_images/ */
   imageUrl: string;
   averageRating: number;
   reviewCount: number;

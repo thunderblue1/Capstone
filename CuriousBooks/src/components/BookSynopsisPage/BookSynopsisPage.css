@@ -55,11 +55,14 @@
   margin: 0 auto;
   padding: 0 var(--container-padding);
   display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: var(--space-2xl);
+  grid-template-columns: minmax(0, 280px) 1fr;
+  gap: var(--space-xl);
+  align-items: start;
 }
 
 .synopsis-section__image {
+  width: 100%;
+  max-width: 280px;
   height: fit-content;
 }
 
@@ -68,12 +71,21 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
+  line-height: 0;
+  background: transparent;
 }
 
+.book-cover-image,
 .book-cover-placeholder-large {
   width: 100%;
   height: auto;
   display: block;
+  vertical-align: top;
+  object-fit: cover;
+}
+
+.book-cover-placeholder-large {
+  aspect-ratio: 5 / 7;
 }
 
 .synopsis-section__details {
@@ -280,7 +292,7 @@
   
   .synopsis-section__image {
     position: static;
-    max-width: 300px;
+    max-width: 280px;
     margin: 0 auto;
   }
   
