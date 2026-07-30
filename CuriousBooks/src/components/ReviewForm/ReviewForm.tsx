@@ -1,6 +1,7 @@
 import { FC, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { reviewsApi } from '../../services/api';
+import { buildLoginPath } from '../../services/loginRedirect';
 import { logger } from '../../services/logger';
 import type { Review, User } from '../../services/types';
 import './ReviewForm.css';
@@ -20,6 +21,8 @@ const ReviewForm: FC<ReviewFormProps> = ({
   isLoggedIn, 
   onReviewSubmitted 
 }) => {
+  const location = useLocation();
+  const loginPath = buildLoginPath(`${location.pathname}${location.search}`);
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState('');
@@ -100,7 +103,7 @@ const ReviewForm: FC<ReviewFormProps> = ({
           </div>
           <h3>Share Your Thoughts!</h3>
           <p>Log in to leave a review for "{bookTitle}"</p>
-          <Link to="/login" className="review-form__login-btn">
+          <Link to={loginPath} className="review-form__login-btn">
             Log In to Review
           </Link>
         </div>

@@ -9,6 +9,7 @@ import CartPage from './components/CartPage/CartPage';
 import CheckoutPage from './components/CheckoutPage/CheckoutPage';
 import OrderDetailsPage from './components/OrderDetailsPage/OrderDetailsPage';
 import OrdersPage from './components/OrdersPage/OrdersPage';
+import ProfilePage from './components/ProfilePage/ProfilePage';
 import ManagerBooksPage from './components/ManagerBooksPage/ManagerBooksPage';
 import type { Book, User, CartItem } from './services/types';
 import { logger } from './services/logger';
@@ -95,6 +96,14 @@ function App() {
     setCurrentUser(null);
     setUserAvatar(null);
   }, [currentUser?.id]);
+
+  const handleUserUpdate = useCallback((user: User) => {
+    setCurrentUser(user);
+    const name = user.firstName || user.username;
+    setUserAvatar(
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2e7d32&color=fff&size=128`,
+    );
+  }, []);
 
   // Calculate total cart item count (sum of quantities)
   const totalCartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -186,11 +195,10 @@ function App() {
         <Route 
           path="/profile" 
           element={
-            isLoggedIn ? (
-              <AboutMePage cartItems={cartItems.map(item => item.book)} {...navBarProps} />
-            ) : (
-              <LoginPage onLogin={handleLogin} />
-            )
+            <ProfilePage
+              {...navBarProps}
+              onUserUpdate={handleUserUpdate}
+            />
           } 
         />
         <Route 

@@ -73,5 +73,56 @@ describe('TC-10 Cart UI — add and remove', () => {
     );
 
     expect(screen.getByText('Your cart is empty')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Continue Shopping/i })).toHaveAttribute(
+      'href',
+      '/search',
+    );
+  });
+
+  test('Continue Shopping returns to previous search results', () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/cart',
+            state: { from: '/search?q=mystery' },
+          },
+        ]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <CartPage
+          cartItems={[{ bookId: book.id, quantity: 1, book }]}
+          onRemoveFromCart={vi.fn()}
+          onUpdateQuantity={vi.fn()}
+          onClearCart={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('link', { name: /Continue Shopping/i })).toHaveAttribute(
+      'href',
+      '/search?q=mystery',
+    );
+  });
+
+  test('empty cart Continue Shopping returns to previous search results', () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/cart',
+            state: { from: '/search?category=Fiction' },
+          },
+        ]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <CartPage cartItems={[]} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('link', { name: /Continue Shopping/i })).toHaveAttribute(
+      'href',
+      '/search?category=Fiction',
+    );
   });
 });

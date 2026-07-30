@@ -1,8 +1,9 @@
 import { FC } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import Footer from '../Footer/Footer';
 import StarRating from '../StarRating/StarRating';
+import { getContinueShoppingPath } from '../../services/searchReturn';
 import type { Book, User, CartItem } from '../../services/types';
 import './CartPage.css';
 
@@ -32,6 +33,10 @@ const CartPage: FC<CartPageProps> = ({
   onLogout,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const continueShoppingTo = getContinueShoppingPath(location);
+  const searchReturnState =
+    continueShoppingTo !== '/search' ? { from: continueShoppingTo } : undefined;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -78,8 +83,8 @@ const CartPage: FC<CartPageProps> = ({
               </div>
               <h2>Your cart is empty</h2>
               <p>Looks like you haven't added any books yet.</p>
-              <Link to="/search" className="btn-primary">
-                Start Shopping
+              <Link to={continueShoppingTo} className="cart-empty__shop-btn">
+                Continue Shopping
               </Link>
             </div>
           ) : (
@@ -112,7 +117,11 @@ const CartPage: FC<CartPageProps> = ({
                         </svg>
                       </div>
                       <div className="cart-item__details">
-                        <Link to={`/book/${item.book.id}`} className="cart-item__title">
+                        <Link
+                          to={`/book/${item.book.id}`}
+                          state={searchReturnState}
+                          className="cart-item__title"
+                        >
                           {item.book.title}
                         </Link>
                         <p className="cart-item__author">by {item.book.author}</p>
@@ -171,7 +180,7 @@ const CartPage: FC<CartPageProps> = ({
                   <button className="clear-cart-btn" onClick={onClearCart}>
                     Clear Cart
                   </button>
-                  <Link to="/search" className="continue-shopping">
+                  <Link to={continueShoppingTo} className="continue-shopping">
                     Continue Shopping
                   </Link>
                 </div>
@@ -217,14 +226,3 @@ const CartPage: FC<CartPageProps> = ({
 };
 
 export default CartPage;
-
-
-
-
-
-
-
-
-
-
-

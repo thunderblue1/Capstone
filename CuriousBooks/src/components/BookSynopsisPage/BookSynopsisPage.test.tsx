@@ -39,4 +39,36 @@ describe('<BookSynopsisPage />', () => {
     const genreLink = screen.getByRole('link', { name: /Browse Fiction books/i });
     expect(genreLink).toHaveAttribute('href', '/search?q=Fiction');
   });
+
+  test('Continue Shopping returns to previous search results when available', async () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/book/book-1',
+            state: { from: '/search?q=fiction' },
+          },
+        ]}
+        future={routerFuture}
+      >
+        <Routes>
+          <Route path="/book/:id" element={<BookSynopsisPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const continueShopping = await screen.findByRole('link', {
+      name: /Continue Shopping/i,
+    });
+    expect(continueShopping).toHaveAttribute('href', '/search?q=fiction');
+  });
+
+  test('Continue Shopping falls back to /search without prior search state', async () => {
+    renderSynopsisPage();
+
+    const continueShopping = await screen.findByRole('link', {
+      name: /Continue Shopping/i,
+    });
+    expect(continueShopping).toHaveAttribute('href', '/search');
+  });
 });

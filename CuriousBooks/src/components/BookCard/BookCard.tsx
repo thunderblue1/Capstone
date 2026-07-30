@@ -1,7 +1,8 @@
 import { FC, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import StarRating from '../StarRating/StarRating';
 import { resolveBookCoverUrl } from '../../services/bookCovers';
+import { resolveSearchReturnPath } from '../../services/searchReturn';
 import type { Book } from '../../services/types';
 import './BookCard.css';
 
@@ -11,9 +12,11 @@ export interface BookCardProps {
 }
 
 const BookCard: FC<BookCardProps> = ({ book, onAddToCart }) => {
+  const location = useLocation();
   const [imageFailed, setImageFailed] = useState(false);
   const coverSrc = resolveBookCoverUrl(book.imageUrl);
   const showCover = Boolean(coverSrc) && !imageFailed;
+  const searchReturnPath = resolveSearchReturnPath(location);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -86,7 +89,11 @@ const BookCard: FC<BookCardProps> = ({ book, onAddToCart }) => {
       </div>
 
       <div className="book-card__footer">
-        <Link to={`/book/${book.id}`} className="book-card__btn book-card__btn--details">
+        <Link
+          to={`/book/${book.id}`}
+          state={searchReturnPath ? { from: searchReturnPath } : undefined}
+          className="book-card__btn book-card__btn--details"
+        >
           Details
         </Link>
         <button 

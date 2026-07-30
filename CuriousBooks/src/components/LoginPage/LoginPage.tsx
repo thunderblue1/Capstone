@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import Footer from '../Footer/Footer';
 import { authApi, ApiError } from '../../services/api';
+import { getSafeRedirectPath } from '../../services/loginRedirect';
 import type { User } from '../../services/types';
 import './LoginPage.css';
 
@@ -21,8 +22,7 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // Get redirect path from URL params
-  const redirectPath = searchParams.get('redirect') || '/';
+  const redirectPath = getSafeRedirectPath(searchParams.get('redirect'));
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -63,7 +63,6 @@ const LoginPage: FC<LoginPageProps> = ({ onLogin }) => {
         onLogin(email, password, authResponse.user);
       }
       
-      // Navigate to redirect path (checkout if coming from checkout) or home
       navigate(redirectPath);
     } catch (err) {
       if (err instanceof ApiError) {

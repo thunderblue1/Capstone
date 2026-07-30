@@ -35,7 +35,7 @@
  *   <Route path="/book/:id" element={<BookSynopsisPage {...props} />} />
  */
 import { FC, useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import NavBar from '../NavBar/NavBar';
 import StarRating from '../StarRating/StarRating';
 import Review from '../Review/Review';
@@ -44,6 +44,7 @@ import BookSuggestions from '../BookSuggestions/BookSuggestions';
 import Footer from '../Footer/Footer';
 import { booksApi, recommendationsApi } from '../../services/api';
 import { resolveBookCoverUrl } from '../../services/bookCovers';
+import { getContinueShoppingPath } from '../../services/searchReturn';
 import { logger } from '../../services/logger';
 import type { Book, Review as ReviewType, User } from '../../services/types';
 import './BookSynopsisPage.css';
@@ -71,6 +72,8 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
    * Extract book ID from route and manage component state
    * ───────────────────────────────────────────────────────────── */
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const continueShoppingTo = getContinueShoppingPath(location);
   const [book, setBook] = useState<Book | null>(null);
   const [reviews, setReviews] = useState<ReviewType[]>([]);
   const [similarBooks, setSimilarBooks] = useState<Book[]>([]);
@@ -362,7 +365,7 @@ const BookSynopsisPage: FC<BookSynopsisPageProps> = ({
                   </svg>
                   {book.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}
                 </button>
-                <Link to="/search" className="btn-secondary btn-large">
+                <Link to={continueShoppingTo} className="btn-secondary btn-large">
                   Continue Shopping
                 </Link>
               </div>

@@ -1,6 +1,8 @@
 import { FC, useState, useRef, useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import BookSearchBox from '../BookSearchBox/BookSearchBox';
+import { resolveSearchReturnPath } from '../../services/searchReturn';
+import { buildLoginPath } from '../../services/loginRedirect';
 import type { User } from '../../services/types';
 import './NavBar.css';
 
@@ -22,6 +24,9 @@ const NavBar: FC<NavBarProps> = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchReturnPath = resolveSearchReturnPath(location);
+  const loginPath = buildLoginPath(`${location.pathname}${location.search}`);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -38,7 +43,16 @@ const NavBar: FC<NavBarProps> = ({
   const handleLogout = () => {
     setShowDropdown(false);
     onLogout?.();
-    navigate('/');
+
+    const path = location.pathname;
+    const requiresAuth =
+      path === '/profile' ||
+      path.startsWith('/orders') ||
+      path.startsWith('/manage/books');
+
+    if (requiresAuth) {
+      navigate('/');
+    }
   };
 
   const getUserInitials = () => {
@@ -95,7 +109,12 @@ const NavBar: FC<NavBarProps> = ({
         </div>
 
         <div className="navbar-actions">
-          <Link to="/cart" className="cart-link" aria-label="Shopping cart">
+          <Link
+            to="/cart"
+            state={searchReturnPath ? { from: searchReturnPath } : undefined}
+            className="cart-link"
+            aria-label="Shopping cart"
+          >
             <svg 
               className="cart-icon" 
               viewBox="0 0 24 24" 
@@ -228,7 +247,7 @@ const NavBar: FC<NavBarProps> = ({
               )}
             </div>
           ) : (
-            <Link to="/login" className="login-link">
+            <Link to={loginPath} className="login-link">
               <svg 
                 viewBox="0 0 24 24" 
                 fill="none" 
