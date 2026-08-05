@@ -28,11 +28,23 @@ def main():
             return 1
 
         service.train_all(books_data, ratings_data, user_interactions)
+        cf = service.cf_model
         print(
             f'Trained recommender on {len(books_data)} books, '
             f'{len(ratings_data)} ratings, '
             f'{len(user_interactions)} interactions.'
         )
+        if cf and cf.is_ready:
+            print(
+                f'CF ready ({cf.method}): '
+                f'{len(cf.user_ids)} users × {len(cf.book_ids)} items, '
+                f'{cf._interaction_count} matrix cells.'
+            )
+        else:
+            print(
+                'CF not ready yet (need denser ratings/purchases). '
+                'Run: python seed_cf_demo_data.py'
+            )
         print(f'Models saved to: {os.path.abspath(model_path)}')
         return 0
 

@@ -30,7 +30,7 @@ A Flask-based REST API backend for the Curious Books bookstore application.
 - **Authentication**: JWT-based user authentication
 - **Reviews**: User reviews and ratings
 - **Orders/Checkout**: Shopping cart validation and order management
-- **Recommendations**: Placeholder for ML-based book recommendations
+- **Recommendations**: Popularity, content-based (TF-IDF), and gated collaborative filtering
 
 ## Getting Started
 

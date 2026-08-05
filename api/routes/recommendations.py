@@ -4,7 +4,8 @@ Recommendations API Routes Module
 
 Purpose:
     Provides REST API endpoints for book recommendations using
-    popularity heuristics and (when enabled) content-based TF-IDF models.
+    popularity heuristics and (when enabled) ML models: content-based
+    TF-IDF, collaborative filtering (gated), and hybrid fallbacks.
 
 Endpoints:
     GET /api/recommendations               - General recommendations
@@ -12,8 +13,9 @@ Endpoints:
     GET /api/recommendations/similar/<id>  - Similar books to given book
     GET /api/recommendations/search-based  - Recommendations based on search
 
-When RECOMMENDER_ENABLED is true, endpoints prefer ContentBasedRecommender
-and fall back to SQL heuristics when the model cannot produce enough results.
+When RECOMMENDER_ENABLED is true, personalized recommendations prefer
+collaborative filtering when the user/matrix have enough interactions,
+then content-based, then popularity / SQL heuristics.
 """
 from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -23,6 +25,9 @@ from models import Book, Order, Review
 from services.recommender import get_recommender_service
 
 recommendations_bp = Blueprint('recommendations', __name__)
+
+# Orders that count as positive purchase signals for CF / profiles.
+_PURCHASE_STATUSES = frozenset({'Pending', 'Paid', 'Shipped', 'Delivered'})
 
 
 def _books_by_ids(book_ids):
@@ -80,6 +85,8 @@ def _collect_training_payload():
         })
 
     for order in Order.query.all():
+        if order.status not in _PURCHASE_STATUSES:
+            continue
         for item in order.items:
             user_interactions.append({
                 'user_id': order.user_id,
@@ -214,19 +221,21 @@ def get_personalized_recommendations():
 
     user_orders = Order.query.filter_by(user_id=user_id).all()
     for order in user_orders:
+        if order.status not in _PURCHASE_STATUSES:
+            continue
         for item in order.items:
             user_book_ids.add(item.book_id)
 
     service = _ensure_recommender()
     if service is not None:
-        # Retrain so this user's latest interactions are in the profile
+        # Retrain so this user's latest interactions are in the models
         books_data, ratings_data, user_interactions = _collect_training_payload()
         service.train_all(books_data, ratings_data, user_interactions)
 
-        recommended_ids = service.get_recommendations(
+        recommended_ids, algorithm = service.recommend_for_user(
             user_id=user_id,
             n=limit,
-            algorithm='content',
+            algorithm='hybrid',
             exclude_ids=user_book_ids,
         )
         recommended_ids = _in_stock_ids(recommended_ids)[:limit]
@@ -241,10 +250,14 @@ def get_personalized_recommendations():
 
         return jsonify({
             'recommendations': [book.to_dict() for book in books],
-            'algorithm': 'content_based',
+            'algorithm': algorithm,
             'personalized': True,
             'basedOn': {
                 'interactionCount': len(user_book_ids),
+                'cfReady': service.cf_ready,
+                'cfEligible': bool(
+                    service.cf_ready and service.cf_model.can_recommend_for(user_id)
+                ),
             },
         })
 

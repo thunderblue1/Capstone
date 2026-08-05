@@ -139,24 +139,34 @@ api/
 │   └── recommendations.py
 ├── services/              # Business logic services
 │   ├── __init__.py
-│   └── recommender.py     # ML recommender placeholder
-└── models/recommender/    # ML model storage (future)
+│   └── recommender.py     # Popularity, content-based, collaborative CF
+└── models/recommender/    # Saved model pickles (popularity/content/cf)
 ```
 
 ## Recommender System
 
-Content-based filtering is implemented with TF-IDF + cosine similarity on
-`title`, `author`, `genre`, `category`, and `description`.
+Models (no schema changes required):
 
 - **PopularityRecommender**: Rank by `popularity_score` (fallback / cold start)
-- **ContentBasedRecommender**: Similar books, personalized profiles, search-context
-- **CollaborativeFilteringRecommender**: Placeholder for a later phase
+- **ContentBasedRecommender**: TF-IDF + cosine on title/author/genre/category/description
+- **CollaborativeFilteringRecommender**: User–item matrix from `Review.rating` plus
+  implicit purchase weights from non-cancelled `OrderItem`s. Uses TruncatedSVD when
+  the matrix is dense enough; otherwise item–item cosine similarity.
+
+Personalized recommendations are **gated**: CF only when the matrix and the user
+have enough interactions; otherwise content-based, then popularity.
 
 Enable with environment variables:
 
 ```env
 RECOMMENDER_ENABLED=true
 RECOMMENDER_MODEL_PATH=models/recommender
+```
+
+Seed synthetic CF demo users/ratings/purchases (idempotent; use `CF_SEED_FORCE=1` to reset):
+
+```bash
+python seed_cf_demo_data.py
 ```
 
 Train (or retrain) models from the current database:
