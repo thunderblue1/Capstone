@@ -411,4 +411,3 @@ def delete_book(book_id):
     return jsonify({
         'message': 'Book deleted successfully'
     })
-

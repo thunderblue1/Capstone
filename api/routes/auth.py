@@ -273,4 +273,3 @@ def logout():
             pass
 
     return jsonify({'message': 'Logged out successfully'})
-

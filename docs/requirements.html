@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CuriousBooks - Requirements Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary: #2c5530;
+      --color-primary-light: #4a7c50;
+      --color-accent: #d4a853;
+      --color-ink: #1a1a1a;
+      --color-charcoal: #3d3d3d;
+      --color-stone: #6b6b6b;
+      --color-cream: #faf8f5;
+      --color-warm-white: #ffffff;
+      --color-sand: #e8e4dc;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'Source Sans Pro', -apple-system, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--color-cream);
+      color: var(--color-charcoal);
+      line-height: 1.6;
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100vh;
+      background: var(--color-primary);
+      padding: 2rem 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .nav__logo {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--color-warm-white);
+      padding: 0 1.5rem 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 1rem;
+    }
+
+    .nav__logo span {
+      color: var(--color-accent);
+    }
+
+    .nav__section {
+      padding: 0.5rem 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .nav__section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 0.75rem;
+    }
+
+    .nav__link {
+      display: block;
+      padding: 0.6rem 1.5rem;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav__link:hover,
+    .nav__link.active {
+      background: rgba(255,255,255,0.1);
+      color: var(--color-warm-white);
+      border-left-color: var(--color-accent);
+    }
+
+    /* Main Content */
+    .main {
+      margin-left: 260px;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      color: var(--color-warm-white);
+      padding: 4rem 3rem;
+    }
+
+    .header__title {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header__subtitle {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .header__meta {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 2rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .content {
+      padding: 3rem;
+      max-width: 1200px;
+    }
+
+    .section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .section__title {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--color-accent);
+      display: inline-block;
+    }
+
+    .section__description {
+      color: var(--color-stone);
+      margin-bottom: 2rem;
+      max-width: 800px;
+    }
+
+    /* Requirements Table */
+    .req-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--color-warm-white);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+    
+    .req-table.fr-table {
+      width: 100%;
+      table-layout: fixed;
+    }
+    
+    .req-table.fr-table th:nth-child(1),
+    .req-table.fr-table td:nth-child(1) {
+      width: 12%;
+    }
+    
+    .req-table.fr-table th:nth-child(2),
+    .req-table.fr-table td:nth-child(2) {
+      width: 14%;
+    }
+    
+    .req-table.fr-table th:nth-child(3),
+    .req-table.fr-table td:nth-child(3) {
+      width: 74%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+      line-height: 1.6;
+    }
+    
+    .req-table.fr-table code {
+      background: #f3f4f6;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--color-primary);
+    }
+
+    .req-table th {
+      background: var(--color-accent);
+      color: var(--color-ink);
+      font-weight: 700;
+      text-align: left;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .req-table.fr-table th {
+      background: var(--color-primary);
+      color: var(--color-warm-white);
+    }
+
+    .req-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-sand);
+      vertical-align: top;
+    }
+
+    .req-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .req-table tr:hover td {
+      background: rgba(212, 168, 83, 0.05);
+    }
+
+    .req-id {
+      font-weight: 700;
+      color: var(--color-primary);
+      white-space: nowrap;
+    }
+
+    .estimate-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .sprint-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    .req-table th:last-child,
+    .req-table td:last-child {
+      min-width: 90px;
+      white-space: nowrap;
+    }
+
+    .sprint-1 {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .sprint-2 {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .sprint-3 {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .sprint-4 {
+      background: #fce7f3;
+      color: #9d174d;
+    }
+
+    .actor-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: var(--color-sand);
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--color-charcoal);
+    }
+
+    .nfr-ref {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      background: var(--color-accent);
+      color: var(--color-ink);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* Quality Attributes Cards */
+    .qa-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .qa-card {
+      background: var(--color-warm-white);
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-left: 4px solid var(--color-primary);
+    }
+
+    .qa-card__id {
+      font-size: 0.8rem;
+      color: var(--color-primary);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .qa-card__title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--color-ink);
+      margin-bottom: 0.75rem;
+    }
+
+    .qa-card__description {
+      font-size: 0.95rem;
+      color: var(--color-charcoal);
+      margin-bottom: 1rem;
+    }
+
+    .qa-card__metric {
+      font-size: 0.85rem;
+      color: var(--color-stone);
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--color-sand);
+    }
+
+    .qa-card__metric strong {
+      color: var(--color-primary);
+    }
+
+    /* Summary Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: var(--color-warm-white);
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .stat-card__number {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .stat-card__label {
+      font-size: 0.9rem;
+      color: var(--color-stone);
+      margin-top: 0.25rem;
+    }
+
+    /* Subsection styling */
+    .subsection {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px dashed var(--color-sand);
+    }
+
+    .subsection__title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .subsection__title::before {
+      content: '→';
+      color: var(--color-accent);
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 900px) {
+      .nav {
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+      }
+
+      .nav.open {
+        transform: translateX(0);
+      }
+
+      .main {
+        margin-left: 0;
+      }
+
+      .mobile-toggle {
+        display: block;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 101;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        padding: 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .content {
+        padding: 1.5rem;
+      }
+
+      .req-table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .qa-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (min-width: 901px) {
+      .mobile-toggle {
+        display: none;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      .nav, .mobile-toggle {
+        display: none;
+      }
+      .main {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" onclick="document.querySelector('.nav').classList.toggle('open')">
+    ☰ Menu
+  </button>
+
+  <nav class="nav">
+    <div class="nav__logo">Curious<span>Books</span></div>
+    
+    <div class="nav__section">
+      <div class="nav__section-title">Overview</div>
+    </div>
+    <a href="#overview" class="nav__link active">Project Summary</a>
+    
+    <div class="nav__section">
+      <div class="nav__section-title">Non-Functional Requirements</div>
+    </div>
+    <a href="#nfr-auth" class="nav__link">Authentication</a>
+    <a href="#nfr-search" class="nav__link">Search & Browse</a>
+    <a href="#nfr-product" class="nav__link">Product Details</a>
+    <a href="#nfr-cart" class="nav__link">Shopping Cart</a>
+    <a href="#nfr-checkout" class="nav__link">Checkout</a>
+    <a href="#nfr-orders" class="nav__link">Orders</a>
+    <a href="#nfr-profile" class="nav__link">Profile</a>
+    <a href="#nfr-recs" class="nav__link">Recommendations</a>
+    <a href="#nfr-admin" class="nav__link">Administration</a>
+    <a href="#nfr-nav" class="nav__link">Navigation & About</a>
+    
+    <div class="nav__section">
+      <div class="nav__section-title">Quality Attributes</div>
+    </div>
+    <a href="#qa" class="nav__link">System Quality</a>
+  </nav>
+
+  <main class="main">
+    <header class="header">
+      <h1 class="header__title">Requirements Specification</h1>
+      <p class="header__subtitle">CuriousBooks Online Bookstore - Software Requirements Document</p>
+      <div class="header__meta">
+        <span>Version 2.0</span>
+        <span>Last Updated: August 5, 2026</span>
+        <span>Status: Milestone 2 — Requirements Analysis</span>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Overview Section -->
+      <section id="overview" class="section">
+        <h2 class="section__title">Project Summary</h2>
+        <p class="section__description">
+          CuriousBooks is an AI-enhanced online bookstore that enables customers to browse, search, and purchase books,
+          and receive personalized recommendations using content-based and collaborative filtering.
+          The system supports authentication, catalog discovery, shopping cart, Stripe checkout, order history,
+          profile management, and manager inventory CRUD, aligned with proposal wireframes UI 1–UI 13 and the site map.
+        </p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card__number">29</div>
+            <div class="stat-card__label">Non-Functional Requirements</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__number">29</div>
+            <div class="stat-card__label">Functional Requirements</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__number">13</div>
+            <div class="stat-card__label">Wireframes Covered (UI 1–13)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__number">115 hrs</div>
+            <div class="stat-card__label">Total Estimate</div>
+          </div>
+        </div>
+
+        <div style="background: var(--color-warm-white); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <h3 style="font-size: 1.1rem; color: var(--color-ink); margin-bottom: 1rem;">Wireframe → Requirement Traceability</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--color-sand);">
+                <th style="text-align: left; padding: 0.5rem; color: var(--color-primary);">UI</th>
+                <th style="text-align: left; padding: 0.5rem; color: var(--color-primary);">Screen</th>
+                <th style="text-align: left; padding: 0.5rem; color: var(--color-primary);">Primary Requirement IDs</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 1</td><td style="padding: 0.5rem;">Home Page</td><td style="padding: 0.5rem;">NFR-SRCH-002, NFR-SRCH-003, NFR-NAV-001</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 2</td><td style="padding: 0.5rem;">Synopsis Page</td><td style="padding: 0.5rem;">NFR-PROD-001, NFR-PROD-002, NFR-RECS-001</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 3</td><td style="padding: 0.5rem;">About Page</td><td style="padding: 0.5rem;">NFR-NAV-002</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 4</td><td style="padding: 0.5rem;">Product Search Page</td><td style="padding: 0.5rem;">NFR-SRCH-001, NFR-RECS-002</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 5</td><td style="padding: 0.5rem;">Write Review</td><td style="padding: 0.5rem;">NFR-PROD-003, NFR-PROD-004</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 6</td><td style="padding: 0.5rem;">Login Page</td><td style="padding: 0.5rem;">NFR-AUTH-003, NFR-AUTH-005</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 7</td><td style="padding: 0.5rem;">Register Page</td><td style="padding: 0.5rem;">NFR-AUTH-001, NFR-AUTH-002</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 8</td><td style="padding: 0.5rem;">Shopping Cart</td><td style="padding: 0.5rem;">NFR-CART-001, NFR-CART-002, NFR-CART-003</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 9</td><td style="padding: 0.5rem;">Checkout</td><td style="padding: 0.5rem;">NFR-CHKT-001, NFR-CHKT-002</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 10</td><td style="padding: 0.5rem;">Order Details</td><td style="padding: 0.5rem;">NFR-ORDR-002</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 11</td><td style="padding: 0.5rem;">Profile Page</td><td style="padding: 0.5rem;">NFR-PROFILE-001, NFR-PROFILE-002</td></tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);"><td style="padding: 0.5rem;">UI 12</td><td style="padding: 0.5rem;">Manage Books / Edit Modal</td><td style="padding: 0.5rem;">NFR-ADMN-001, NFR-ADMN-002, NFR-ADMN-003</td></tr>
+              <tr><td style="padding: 0.5rem;">UI 13</td><td style="padding: 0.5rem;">My Orders</td><td style="padding: 0.5rem;">NFR-ORDERS-001</td></tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="background: var(--color-warm-white); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <h3 style="font-size: 1.1rem; color: var(--color-ink); margin-bottom: 1rem;">Sprint Overview</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--color-sand);">
+                <th style="text-align: left; padding: 0.75rem; color: var(--color-primary);">Sprint</th>
+                <th style="text-align: left; padding: 0.75rem; color: var(--color-primary);">Focus Area</th>
+                <th style="text-align: left; padding: 0.75rem; color: var(--color-primary);">Features</th>
+                <th style="text-align: left; padding: 0.75rem; color: var(--color-primary);">Total Estimate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid var(--color-sand);">
+                <td style="padding: 0.75rem;"><span class="sprint-badge sprint-1">Sprint 1</span></td>
+                <td style="padding: 0.75rem;">Authentication & Navigation</td>
+                <td style="padding: 0.75rem;">Registration, Login, Logout, Password Rules, Redirects, About</td>
+                <td style="padding: 0.75rem;"><strong>19 hours</strong></td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);">
+                <td style="padding: 0.75rem;"><span class="sprint-badge sprint-2">Sprint 2</span></td>
+                <td style="padding: 0.75rem;">Product Discovery & AI</td>
+                <td style="padding: 0.75rem;">Search, Categories, Featured, Synopsis, Reviews, Recommendations</td>
+                <td style="padding: 0.75rem;"><strong>45 hours</strong></td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--color-sand);">
+                <td style="padding: 0.75rem;"><span class="sprint-badge sprint-3">Sprint 3</span></td>
+                <td style="padding: 0.75rem;">Shopping Cart</td>
+                <td style="padding: 0.75rem;">Add to Cart, View Cart, Cart Management</td>
+                <td style="padding: 0.75rem;"><strong>10 hours</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 0.75rem;"><span class="sprint-badge sprint-4">Sprint 4</span></td>
+                <td style="padding: 0.75rem;">Checkout, Orders, Profile & Admin</td>
+                <td style="padding: 0.75rem;">Stripe Checkout, My Orders, Order Details, Profile, Manage Books</td>
+                <td style="padding: 0.75rem;"><strong>41 hours</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Authentication Requirements -->
+      <section id="nfr-auth" class="section">
+        <h2 class="section__title">Authentication Requirements</h2>
+        <p class="section__description">User registration, login, and session management functionality.</p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-AUTH-001</td>
+              <td>Registration</td>
+              <td><span class="actor-badge">User</span></td>
+              <td>I would like to register on the website before login</td>
+              <td>so that I can get a username and password</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-1">Sprint 1</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-AUTH-002</td>
+              <td>Password Validation</td>
+              <td><span class="actor-badge">User</span></td>
+              <td>I would need to define a password that is 8-10 characters with 1 special character</td>
+              <td>so that I have strong passwords</td>
+              <td><span class="estimate-badge">2 hrs</span></td>
+              <td><span class="sprint-badge sprint-1">Sprint 1</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-AUTH-003</td>
+              <td>Login</td>
+              <td><span class="actor-badge">User</span></td>
+              <td>I would like to be able to login</td>
+              <td>so that I can access the features of the website</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-1">Sprint 1</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-AUTH-004</td>
+              <td>Logout</td>
+              <td><span class="actor-badge">User</span></td>
+              <td>I would like to be able to logout</td>
+              <td>so that I can protect data that may be vital to me or my company</td>
+              <td><span class="estimate-badge">1 hr</span></td>
+              <td><span class="sprint-badge sprint-1">Sprint 1</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-AUTH-005</td>
+              <td>Post-Login Redirect</td>
+              <td><span class="actor-badge">User</span></td>
+              <td>I would like a successful login to return me to the page that prompted login or the prior page I came from</td>
+              <td>so that I can continue my shopping flow without restarting navigation (site map)</td>
+              <td><span class="estimate-badge">2 hrs</span></td>
+              <td><span class="sprint-badge sprint-1">Sprint 1</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-AUTH-006</td>
+              <td>Protected Route Guard</td>
+              <td><span class="actor-badge">User</span></td>
+              <td>I would like attempts to open auth-required pages (profile, my orders, manage books) to redirect me to login when I am not authenticated or not authorized</td>
+              <td>so that private and manager-only screens stay protected (site map)</td>
+              <td><span class="estimate-badge">2 hrs</span></td>
+              <td><span class="sprint-badge sprint-1">Sprint 1</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-AUTH-001</td>
+                <td><span class="nfr-ref">NFR-AUTH-001</span></td>
+                <td>The <code>LoginPage</code> (UI 7) provides a registration form. Form submission calls <code>authApi.register()</code> which sends a POST request to the Flask backend at <code>/api/auth/register</code>. The backend creates a new user record in the MySQL database and returns JWT tokens.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-AUTH-002</td>
+                <td><span class="nfr-ref">NFR-AUTH-002</span></td>
+                <td>Password validation is enforced on both frontend (HTML5 validation) and backend. The Flask <code>auth.py</code> route validates password requirements before hashing with bcrypt and storing in the <code>users</code> table.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-AUTH-003</td>
+                <td><span class="nfr-ref">NFR-AUTH-003</span></td>
+                <td>The <code>LoginPage</code> (UI 6) calls <code>authApi.login(email, password)</code> which sends a POST to <code>/api/auth/login</code>. The Flask backend validates credentials against the MySQL database and returns JWT access/refresh tokens stored in localStorage.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-AUTH-004</td>
+                <td><span class="nfr-ref">NFR-AUTH-004</span></td>
+                <td>Logout calls <code>authApi.logout()</code> which clears JWT tokens from localStorage via the <code>clearTokens()</code> function. Per the site map, the user remains on the current page unless the page requires login (profile, my orders, manage books), in which case the app redirects to the home page.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-AUTH-005</td>
+                <td><span class="nfr-ref">NFR-AUTH-005</span></td>
+                <td>Login routes accept a <code>?redirect=</code> query (via <code>loginRedirect.ts</code>). After successful authentication, React Router navigates back to the prompting page (e.g. checkout or profile) instead of always sending the user to home.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-AUTH-006</td>
+                <td><span class="nfr-ref">NFR-AUTH-006</span></td>
+                <td><code>App.tsx</code> route guards for <code>/profile</code>, <code>/orders</code>, <code>/orders/:id</code>, and <code>/manage/books</code> redirect unauthenticated users to <code>/login</code>. Manager/admin role is checked before rendering <code>ManagerBooksPage</code>; unauthorized users are redirected to login or home.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Search & Browse Requirements -->
+      <section id="nfr-search" class="section">
+        <h2 class="section__title">Search & Browse Requirements</h2>
+        <p class="section__description">Book discovery, search, and browsing functionality.</p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-SRCH-001</td>
+              <td>Book Search</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to be able to search for a particular book</td>
+              <td>so that I can find a book of interest</td>
+              <td><span class="estimate-badge">6 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-SRCH-002</td>
+              <td>Browse Categories</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to browse books by category or genre</td>
+              <td>so that I can discover new books in my areas of interest</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-SRCH-003</td>
+              <td>Featured Books</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to see featured and recommended books on the homepage</td>
+              <td>so that I can discover popular or new releases</td>
+              <td><span class="estimate-badge">3 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-SRCH-001</td>
+                <td><span class="nfr-ref">NFR-SRCH-001</span></td>
+                <td>The <code>BookSearchBox</code> component captures user input and navigates to <code>/search?q={query}</code>. The <code>ResultsPage</code> calls <code>booksApi.search(query)</code> which sends a GET request to the Flask <code>/api/books/search</code> endpoint, returning paginated results from the MySQL database.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-SRCH-002</td>
+                <td><span class="nfr-ref">NFR-SRCH-002</span></td>
+                <td>The <code>FeaturedCategories</code> component calls <code>categoriesApi.getAll()</code> to fetch categories from the Flask <code>/api/categories</code> endpoint. Clicking a category calls <code>booksApi.getByCategory()</code> which queries the <code>categories</code> and <code>books</code> tables via the backend.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-SRCH-003</td>
+                <td><span class="nfr-ref">NFR-SRCH-003</span></td>
+                <td>The <code>LandingPage</code> component calls <code>booksApi.getFeatured(4)</code> which sends a GET request to the Flask <code>/api/books/featured</code> endpoint. The backend queries books ordered by <code>popularity_score</code> from the MySQL database.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Product Details Requirements -->
+      <section id="nfr-product" class="section">
+        <h2 class="section__title">Product Details Requirements</h2>
+        <p class="section__description">Book information display and review functionality.</p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-PROD-001</td>
+              <td>Book Details Page</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to click a button that navigates to a full details page of a book entry</td>
+              <td>so that I can learn more about a particular book</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-PROD-002</td>
+              <td>Book Information</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to see book details including title, author, ISBN, price, and description</td>
+              <td>so that I can make an informed purchasing decision</td>
+              <td><span class="estimate-badge">6 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-PROD-003</td>
+              <td>Customer Reviews</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to read customer reviews and ratings for books</td>
+              <td>so that I can gauge the quality before purchasing</td>
+              <td><span class="estimate-badge">5 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-PROD-004</td>
+              <td>Write Review (UI 5)</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to submit a star rating and written review for a book while authenticated</td>
+              <td>so that I can share feedback that helps other shoppers and improves recommendations</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-PROD-001</td>
+                <td><span class="nfr-ref">NFR-PROD-001</span></td>
+                <td>Each <code>BookCard</code> component contains a React Router <code>&lt;Link&gt;</code> to <code>/book/:id</code> (UI 2). The <code>BookSynopsisPage</code> component extracts the ID and calls <code>booksApi.getById(id)</code> which fetches book details from the Flask <code>/api/books/:id</code> endpoint.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-PROD-002</td>
+                <td><span class="nfr-ref">NFR-PROD-002</span></td>
+                <td>The <code>BookSynopsisPage</code> (UI 2) uses <code>useParams</code> to extract the book ID, then calls <code>booksApi.getById()</code>. The Flask backend queries the <code>books</code> table and returns fields including title, author, ISBN, publisher, publication_date, language, genre, page_count, price, and stock.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-PROD-003</td>
+                <td><span class="nfr-ref">NFR-PROD-003</span></td>
+                <td>The <code>BookSynopsisPage</code> calls <code>reviewsApi.getByBook(bookId)</code> which sends a GET request to the Flask <code>/api/reviews/book/:id</code> endpoint. The backend joins the <code>reviews</code> and <code>users</code> tables to return reviewer names, ratings, dates, and text.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-PROD-004</td>
+                <td><span class="nfr-ref">NFR-PROD-004</span></td>
+                <td>The <code>ReviewForm</code> on the synopsis page (UI 5) requires authentication. Authenticated users submit rating and text via <code>reviewsApi.create()</code> (POST <code>/api/reviews</code>). Guests are directed to login with a redirect back to the book page.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Shopping Cart Requirements -->
+      <section id="nfr-cart" class="section">
+        <h2 class="section__title">Shopping Cart Requirements</h2>
+        <p class="section__description">Cart management and item handling functionality.</p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-CART-001</td>
+              <td>Add to Cart</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to be able to add an item to the cart from the products page</td>
+              <td>so that I can add more than one item to the cart</td>
+              <td><span class="estimate-badge">3 hrs</span></td>
+              <td><span class="sprint-badge sprint-3">Sprint 3</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-CART-002</td>
+              <td>View Cart</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to see the items in my cart</td>
+              <td>so that I can know what I am purchasing</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-3">Sprint 3</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-CART-003</td>
+              <td>Cart Management</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to be able to add or remove items in the cart</td>
+              <td>so that I can manage what I am purchasing without having to navigate to a previous page</td>
+              <td><span class="estimate-badge">3 hrs</span></td>
+              <td><span class="sprint-badge sprint-3">Sprint 3</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-CART-001</td>
+                <td><span class="nfr-ref">NFR-CART-001</span></td>
+                <td>The <code>BookSynopsisPage</code> and <code>BookCard</code> components include an "Add to Cart" button. The <code>handleAddToCart</code> function in <code>App.tsx</code> adds the book to local state. Cart items are validated via <code>ordersApi.validateCart()</code> which calls the Flask <code>/api/orders/cart/validate</code> endpoint.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-CART-002</td>
+                <td><span class="nfr-ref">NFR-CART-002</span></td>
+                <td>The <code>CartPage</code> component displays cart items with book details fetched from the API. It calls <code>ordersApi.validateCart()</code> to get current prices and stock availability from the Flask backend, ensuring accurate totals from the MySQL database.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-CART-003</td>
+                <td><span class="nfr-ref">NFR-CART-003</span></td>
+                <td>The <code>CartPage</code> provides remove buttons that call <code>onRemoveFromCart(bookId)</code> updating local state. The Flask <code>/api/orders/cart/validate</code> endpoint recalculates subtotals, tax, and totals whenever the cart changes.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Checkout Requirements -->
+      <section id="nfr-checkout" class="section">
+        <h2 class="section__title">Checkout Requirements</h2>
+        <p class="section__description">Order completion and payment processing functionality.</p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-CHKT-001</td>
+              <td>Checkout Process (UI 9)</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to enter shipping information and pay securely with a card to complete checkout</td>
+              <td>so that I can purchase the books in my cart</td>
+              <td><span class="estimate-badge">8 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-CHKT-002</td>
+              <td>Order Summary</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to see an order summary before confirming purchase</td>
+              <td>so that I can verify my order is correct</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-CHKT-001</td>
+                <td><span class="nfr-ref">NFR-CHKT-001</span></td>
+                <td>The <code>CheckoutPage</code> (UI 9) collects shipping fields and uses Stripe Elements (<code>CardElement</code>). The frontend creates a PaymentIntent via <code>/api/orders/stripe/create-intent</code>, confirms payment, then calls <code>/api/orders/stripe/confirm</code> to persist the order, line items, and payment IDs in MySQL and clear the cart.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-CHKT-002</td>
+                <td><span class="nfr-ref">NFR-CHKT-002</span></td>
+                <td>Checkout and cart screens display an order summary by calling <code>ordersApi.validateCart()</code>. The Flask backend calculates subtotals from current book prices in MySQL, applies tax, and returns an itemized <code>CartValidation</code> response.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Orders & Profile (UI 10, 11, 13) -->
+      <section id="nfr-orders" class="section">
+        <h2 class="section__title">Order Requirements</h2>
+        <p class="section__description">
+          Authenticated account screens from the proposal wireframes: My Orders (UI 13) and Order Details (UI 10).
+        </p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-ORDR-001</td>
+              <td>My Orders (UI 13)</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to view a list of my past orders with date, status, items preview, and total</td>
+              <td>so that I can track purchases I have completed</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-ORDR-002</td>
+              <td>Order Details (UI 10)</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to open a single order and see line items, status, payment reference, tax, and total</td>
+              <td>so that I can verify what was purchased and paid</td>
+              <td><span class="estimate-badge">3 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-ORDR-001</td>
+                <td><span class="nfr-ref">NFR-ORDR-001</span></td>
+                <td>The <code>OrdersPage</code> (UI 13) at <code>/orders</code> is auth-gated. It calls <code>ordersApi.getAll()</code> (GET <code>/api/orders</code>) and renders order cards linking to detail views. Reachable from the NavBar profile menu on any page (site map).</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-ORDR-002</td>
+                <td><span class="nfr-ref">NFR-ORDR-002</span></td>
+                <td>The <code>OrderDetailsPage</code> (UI 10) at <code>/orders/:id</code> calls <code>ordersApi.getById(id)</code> and displays status, Stripe payment id when present, line items, tax, and totals, with links back to shopping and the orders list.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="nfr-profile" class="section">
+        <h2 class="section__title">Profile Requirements</h2>
+        <p class="section__description">
+          Authenticated account screens from the proposal wireframes: Profile (UI 11).
+        </p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <tr>
+              <td class="req-id">NFR-PROFILE-001</td>
+              <td>Profile Page (UI 11)</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to view and update my profile details (name, username) and see my role</td>
+              <td>so that my account information stays accurate</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-PROFILE-002</td>
+              <td>Change Password (UI 11)</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to change my password from the profile page</td>
+              <td>so that I can keep my account secure</td>
+              <td><span class="estimate-badge">2 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-PROFILE-003</td>
+                <td><span class="nfr-ref">NFR-ORDR-003</span></td>
+                <td>The <code>ProfilePage</code> (UI 11) at <code>/profile</code> loads the current user via <code>authApi.getMe()</code> and updates name/username via <code>authApi.updateMe()</code> (PUT <code>/api/auth/me</code>). Displays avatar and role; links to My Orders.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-PROFILE-004</td>
+                <td><span class="nfr-ref">NFR-ORDR-004</span></td>
+                <td>Profile page password form calls <code>authApi.changePassword()</code> (POST <code>/api/auth/change-password</code>). The Flask backend verifies the current password and stores a new bcrypt hash.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Recommendations (proposal AI engine) -->
+      <section id="nfr-recs" class="section">
+        <h2 class="section__title">Recommendation Requirements</h2>
+        <p class="section__description">
+          AI recommendation capabilities from the Milestone 1 proposal: content-based and collaborative filtering surfaced on search and synopsis screens.
+        </p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-RECS-001</td>
+              <td>Similar Books</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like to see similar book suggestions on the synopsis page</td>
+              <td>so that I can discover related titles without starting a new search</td>
+              <td><span class="estimate-badge">5 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-RECS-002</td>
+              <td>Search / Personalized Recs</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like recommendation suggestions on the search results page based on my query or my reading behavior when logged in</td>
+              <td>so that I can find books I am more likely to enjoy faster</td>
+              <td><span class="estimate-badge">8 hrs</span></td>
+              <td><span class="sprint-badge sprint-2">Sprint 2</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-RECS-001</td>
+                <td><span class="nfr-ref">NFR-RECS-001</span></td>
+                <td><code>BookSuggestions</code> on <code>BookSynopsisPage</code> (UI 2) calls <code>recommendationsApi.getSimilar(bookId)</code> (GET <code>/api/recommendations/similar/:id</code>). The recommender uses content-based TF-IDF similarity (with popularity fallback) from <code>services/recommender.py</code>.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-RECS-002</td>
+                <td><span class="nfr-ref">NFR-RECS-002</span></td>
+                <td><code>ResultsPage</code> (UI 4) renders <code>BookSuggestions</code> using search-based recommendations (<code>/api/recommendations/search-based</code>) or personalized recommendations (<code>/api/recommendations/personalized</code>) when authenticated. Personalized flow gates collaborative filtering and falls back to content-based then popularity.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Admin Requirements -->
+      <section id="nfr-admin" class="section">
+        <h2 class="section__title">Administration Requirements</h2>
+        <p class="section__description">
+          Manager inventory screens from the proposal: Manage Books list (UI 12) and Edit Book modal (UI 12).
+        </p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-ADMN-001</td>
+              <td>Manager Authorization</td>
+              <td><span class="actor-badge">Manager</span></td>
+              <td>I would like manager/admin role access so that Manage Books appears in my profile menu and is reachable only when authorized</td>
+              <td>so that only staff can change catalog inventory</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-ADMN-002</td>
+              <td>Manage Books List (UI 12)</td>
+              <td><span class="actor-badge">Manager</span></td>
+              <td>I would like to view a paginated list of books and add or delete listings</td>
+              <td>so that I can keep the store catalog current</td>
+              <td><span class="estimate-badge">8 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-ADMN-003</td>
+              <td>Edit Book Modal (UI 12)</td>
+              <td><span class="actor-badge">Manager</span></td>
+              <td>I would like to open an edit modal to update book fields (title, author, price, stock, description, and related metadata)</td>
+              <td>so that I can correct inventory details without leaving the manage books page</td>
+              <td><span class="estimate-badge">4 hrs</span></td>
+              <td><span class="sprint-badge sprint-4">Sprint 4</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-ADMN-001</td>
+                <td><span class="nfr-ref">NFR-ADMN-001</span></td>
+                <td>Role is stored on the user record (<code>customer</code>, <code>manager</code>, <code>admin</code>) and returned in JWT/auth payloads. NavBar shows “Manage Books” only for manager/admin. Flask book write routes use <code>@product_manager_required</code> so clients cannot elevate privileges.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-ADMN-002</td>
+                <td><span class="nfr-ref">NFR-ADMN-002</span></td>
+                <td>The <code>ManagerBooksPage</code> (UI 12) at <code>/manage/books</code> lists books with pagination and supports create/delete via POST/DELETE <code>/api/books</code> (manager/admin). Unauthenticated or unauthorized users are redirected per the site map.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-ADMN-003</td>
+                <td><span class="nfr-ref">NFR-ADMN-003</span></td>
+                <td>The Manage Books edit modal (UI 12) binds full book fields and saves with PUT <code>/api/books/:id</code>. On success the list refreshes so inventory changes are immediately visible.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Navigation & About (UI 3 + site map) -->
+      <section id="nfr-nav" class="section">
+        <h2 class="section__title">Navigation &amp; About Requirements</h2>
+        <p class="section__description">
+          Global navigation behaviors described in the Curious Books site map, plus the About page (UI 3).
+        </p>
+
+        <h3 style="font-size: 1.2rem; color: var(--color-ink); margin-bottom: 1rem;">Non-Functional Requirements (User Stories)</h3>
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Actor</th>
+              <th>I would like to &lt;description&gt;</th>
+              <th>So that &lt;outcome&gt;</th>
+              <th>Estimate</th>
+              <th>Sprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="req-id">NFR-NAV-001</td>
+              <td>Global Navigation</td>
+              <td><span class="actor-badge">Customer</span></td>
+              <td>I would like Home, Search, About, search box, cart, and Login or profile menu (Profile, Orders, Manage Books when allowed, Log Out) available from any page</td>
+              <td>so that I can move through the site without fatigue (site map)</td>
+              <td><span class="estimate-badge">3 hrs</span></td>
+              <td><span class="sprint-badge sprint-1">Sprint 1</span></td>
+            </tr>
+            <tr>
+              <td class="req-id">NFR-NAV-002</td>
+              <td>About Page (UI 3)</td>
+              <td><span class="actor-badge">Visitor</span></td>
+              <td>I would like to read an About page describing the store mission and AI recommendation purpose</td>
+              <td>so that I understand what Curious Books offers</td>
+              <td><span class="estimate-badge">1 hr</span></td>
+              <td><span class="sprint-badge sprint-1">Sprint 1</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="subsection">
+          <h3 class="subsection__title">Corresponding Functional Requirements (Implementation)</h3>
+          <table class="req-table fr-table">
+            <thead>
+              <tr>
+                <th>FR ID</th>
+                <th>Implements</th>
+                <th>Implementation Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="req-id">FR-NAV-001</td>
+                <td><span class="nfr-ref">NFR-NAV-001</span></td>
+                <td>The shared <code>NavBar</code> is rendered across routes with links to <code>/</code>, <code>/search</code>, <code>/about</code>, cart badge, and either Login or the profile dropdown. Cart and profile-menu destinations are reachable from any page as described in the site map.</td>
+              </tr>
+              <tr>
+                <td class="req-id">FR-NAV-002</td>
+                <td><span class="nfr-ref">NFR-NAV-002</span></td>
+                <td>The <code>AboutMePage</code> (UI 3) at <code>/about</code> presents static marketing content covering the store story, mission, and AI recommendations.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Quality Attributes -->
+      <section id="qa" class="section">
+        <h2 class="section__title">System Quality Attributes</h2>
+        <p class="section__description">Quality attributes and system constraints that define how the system should perform.</p>
+
+        <div class="qa-grid">
+          <div class="qa-card">
+            <div class="qa-card__id">QA-PERF-001</div>
+            <div class="qa-card__title">Page Load Performance</div>
+            <div class="qa-card__description">
+              The system shall load all pages within acceptable time limits to ensure a smooth user experience.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Target:</strong> Pages must load within 3 seconds on standard broadband connection
+            </div>
+          </div>
+
+          <div class="qa-card">
+            <div class="qa-card__id">QA-PERF-002</div>
+            <div class="qa-card__title">Search Response Time</div>
+            <div class="qa-card__description">
+              Search queries shall return results quickly to maintain user engagement and satisfaction.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Target:</strong> Search results displayed within 2 seconds
+            </div>
+          </div>
+
+          <div class="qa-card">
+            <div class="qa-card__id">QA-PERF-003</div>
+            <div class="qa-card__title">Recommendation Response Time</div>
+            <div class="qa-card__description">
+              Similar-book and personalized recommendation endpoints shall return results quickly enough to keep discovery fluid on search and synopsis pages.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Target:</strong> Recommendation API responses within 2 seconds for the prototype catalog size
+            </div>
+          </div>
+
+          <div class="qa-card">
+            <div class="qa-card__id">QA-SEC-001</div>
+            <div class="qa-card__title">Password Security</div>
+            <div class="qa-card__description">
+              User passwords must be securely stored using industry-standard encryption methods.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Standard:</strong> Passwords hashed using bcrypt with minimum 10 salt rounds
+            </div>
+          </div>
+
+          <div class="qa-card">
+            <div class="qa-card__id">QA-SEC-002</div>
+            <div class="qa-card__title">Session Management</div>
+            <div class="qa-card__description">
+              User sessions shall timeout after period of inactivity to protect user accounts.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Target:</strong> Sessions expire after 30 minutes of inactivity
+            </div>
+          </div>
+
+          <div class="qa-card">
+            <div class="qa-card__id">QA-USE-001</div>
+            <div class="qa-card__title">Responsive Design</div>
+            <div class="qa-card__description">
+              The application shall be fully functional and visually appealing across all device sizes.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Support:</strong> Desktop, tablet, and mobile viewports (320px - 2560px)
+            </div>
+          </div>
+
+          <div class="qa-card">
+            <div class="qa-card__id">QA-USE-002</div>
+            <div class="qa-card__title">Accessibility</div>
+            <div class="qa-card__description">
+              The application shall meet accessibility standards to ensure usability for all users.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Standard:</strong> WCAG 2.1 Level AA compliance
+            </div>
+          </div>
+
+          <div class="qa-card">
+            <div class="qa-card__id">QA-REL-001</div>
+            <div class="qa-card__title">System Availability</div>
+            <div class="qa-card__description">
+              The system shall maintain high availability to ensure customers can access the store.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Target:</strong> 99.5% uptime during business hours
+            </div>
+          </div>
+
+          <div class="qa-card">
+            <div class="qa-card__id">QA-SCL-001</div>
+            <div class="qa-card__title">Concurrent Users</div>
+            <div class="qa-card__description">
+              The system shall support multiple simultaneous users without performance degradation.
+            </div>
+            <div class="qa-card__metric">
+              <strong>Target:</strong> Support 100 concurrent users minimum
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    // Smooth scrolling for nav links
+    document.querySelectorAll('.nav__link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href.startsWith('#')) {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+            // Update active state
+            document.querySelectorAll('.nav__link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            // Close mobile nav
+            document.querySelector('.nav').classList.remove('open');
+          }
+        }
+      });
+    });
+
+    // Update active nav on scroll
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('.section');
+      let current = '';
+      
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 100;
+        if (scrollY >= sectionTop) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      document.querySelectorAll('.nav__link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
