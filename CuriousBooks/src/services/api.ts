@@ -146,31 +146,89 @@ async function apiFetch<T>(
       (headers as Record<string, string>)['Authorization'] = `Bearer ${getAccessToken()}`;
       const retryResponse = await fetch(url, { ...options, headers });
       if (!retryResponse.ok) {
-        throw new ApiError(retryResponse.status, await retryResponse.text());
+        throw await buildApiError(retryResponse);
       }
       return retryResponse.json();
     }
   }
 
   if (!response.ok) {
-    let errorMessage: string;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.error || errorData.message || 'An error occurred';
-    } catch {
-      errorMessage = response.statusText;
-    }
-    throw new ApiError(response.status, errorMessage);
+    throw await buildApiError(response);
   }
 
   return response.json();
+}
+
+const RATE_LIMIT_UNTIL_KEY = 'curiousbooks_rate_limit_until';
+type RateLimitListener = (untilMs: number) => void;
+const rateLimitListeners = new Set<RateLimitListener>();
+
+/** Subscribe to temporary rate-limit / IP-cooldown notices (no polling). */
+export function subscribeRateLimit(listener: RateLimitListener): () => void {
+  rateLimitListeners.add(listener);
+  return () => {
+    rateLimitListeners.delete(listener);
+  };
+}
+
+/** Absolute timestamp (ms) when access may resume, if a cooldown is known client-side. */
+export function getStoredRateLimitUntil(): number | null {
+  const raw = sessionStorage.getItem(RATE_LIMIT_UNTIL_KEY);
+  if (!raw) return null;
+  const until = Number(raw);
+  if (!Number.isFinite(until) || until <= Date.now()) {
+    sessionStorage.removeItem(RATE_LIMIT_UNTIL_KEY);
+    return null;
+  }
+  return until;
+}
+
+function notifyRateLimit(retryAfterSeconds: number): void {
+  const untilMs = Date.now() + Math.max(1, retryAfterSeconds) * 1000;
+  sessionStorage.setItem(RATE_LIMIT_UNTIL_KEY, String(untilMs));
+  rateLimitListeners.forEach((listener) => listener(untilMs));
+}
+
+async function buildApiError(response: Response): Promise<ApiError> {
+  let errorMessage = response.statusText || 'An error occurred';
+  let retryAfterSeconds: number | undefined;
+
+  try {
+    const errorData = await response.json();
+    errorMessage = errorData.error || errorData.message || errorMessage;
+    if (typeof errorData.retryAfterSeconds === 'number') {
+      retryAfterSeconds = errorData.retryAfterSeconds;
+    }
+  } catch {
+    // non-JSON body
+  }
+
+  if (retryAfterSeconds == null) {
+    const header = response.headers.get('Retry-After');
+    if (header) {
+      const asInt = parseInt(header, 10);
+      if (!Number.isNaN(asInt)) {
+        retryAfterSeconds = asInt;
+      }
+    }
+  }
+
+  if (response.status === 429 && retryAfterSeconds != null) {
+    notifyRateLimit(retryAfterSeconds);
+  }
+
+  return new ApiError(response.status, errorMessage, retryAfterSeconds);
 }
 
 /**
  * Custom error class for API errors
  */
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+    public retryAfterSeconds?: number,
+  ) {
     super(message);
     this.name = 'ApiError';
   }

@@ -27,7 +27,7 @@ def init_db(app):
     db.init_app(app)
 
     with app.app_context():
-        from . import User, Book, Category, Review, Order, OrderItem, TokenBlocklist
+        from . import User, Book, Category, Review, Order, OrderItem, TokenBlocklist, IpCooldown
 
         try:
             db.create_all()

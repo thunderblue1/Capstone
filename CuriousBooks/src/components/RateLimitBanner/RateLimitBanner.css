@@ -1,0 +1,36 @@
+.rate-limit-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--container-padding);
+  background: var(--color-parchment);
+  border-bottom: 1px solid var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+
+.rate-limit-banner__text {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.rate-limit-banner__dismiss {
+  flex-shrink: 0;
+  border: 1px solid var(--color-stone);
+  background: transparent;
+  color: var(--color-charcoal);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+}
+
+.rate-limit-banner__dismiss:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}

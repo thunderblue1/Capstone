@@ -35,6 +35,7 @@ Dependencies:
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import desc
+from limiter import authenticated_limit, limiter
 from models import db, Review, Book, User
 
 reviews_bp = Blueprint('reviews', __name__)
@@ -87,6 +88,7 @@ def get_review(review_id):
 
 @reviews_bp.route('/', methods=['POST'])
 @jwt_required()
+@limiter.limit(authenticated_limit)
 def create_review():
     """Create a new review"""
     user_id = get_jwt_identity()
@@ -139,6 +141,7 @@ def create_review():
 
 @reviews_bp.route('/<int:review_id>', methods=['PUT'])
 @jwt_required()
+@limiter.limit(authenticated_limit)
 def update_review(review_id):
     """Update an existing review"""
     user_id = get_jwt_identity()
@@ -174,6 +177,7 @@ def update_review(review_id):
 
 @reviews_bp.route('/<int:review_id>', methods=['DELETE'])
 @jwt_required()
+@limiter.limit(authenticated_limit)
 def delete_review(review_id):
     """Delete a review"""
     user_id = get_jwt_identity()

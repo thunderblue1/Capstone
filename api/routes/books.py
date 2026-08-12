@@ -27,6 +27,7 @@ Dependencies:
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from sqlalchemy import or_, desc
+from limiter import authenticated_limit, limiter
 from models import db, Book, Category
 from utils.auth import product_manager_required
 
@@ -251,6 +252,7 @@ def get_genres():
 @books_bp.route('/', methods=['POST'])
 @jwt_required()
 @product_manager_required
+@limiter.limit(authenticated_limit)
 def create_book():
     """
     Create a new book (Manager only)
@@ -322,6 +324,7 @@ def create_book():
 @books_bp.route('/<int:book_id>', methods=['PUT'])
 @jwt_required()
 @product_manager_required
+@limiter.limit(authenticated_limit)
 def update_book(book_id):
     """
     Update an existing book (Manager only)
@@ -386,6 +389,7 @@ def update_book(book_id):
 @books_bp.route('/<int:book_id>', methods=['DELETE'])
 @jwt_required()
 @product_manager_required
+@limiter.limit(authenticated_limit)
 def delete_book(book_id):
     """
     Delete a book (Manager only)

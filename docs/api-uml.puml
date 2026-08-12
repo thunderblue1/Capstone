@@ -1,0 +1,319 @@
+@startuml CuriousBooks_API_UML
+' CuriousBooks frontend API class diagram
+' Source: CuriousBooks/src/services/api.ts + types.ts
+'
+' Layout goals: compact, minimal edge crossings, no lines through boxes.
+' Associations express relationships; those fields are omitted from attributes.
+
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #ffffff
+skinparam arrowColor #9aa4b2
+skinparam defaultFontSize 11
+skinparam classFontSize 12
+skinparam classAttributeFontSize 10
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam nodesep 40
+skinparam ranksep 45
+skinparam padding 4
+skinparam linetype polyline
+skinparam maxMessageSize 120
+
+skinparam class {
+  BackgroundColor #1e1e36
+  BorderColor #c8d0dc
+  HeaderBackgroundColor #252545
+  FontColor #ffffff
+  AttributeFontColor #e6eaf0
+  MethodFontColor #e6eaf0
+  RoundCorner 6
+}
+
+skinparam package {
+  BackgroundColor #16162b
+  BorderColor #00c2d6
+  FontColor #00c2d6
+  FontStyle bold
+  FontSize 12
+  RoundCorner 8
+}
+
+title CuriousBooks API — Class Diagram
+
+' ═════════════════════════════════════════════════════════════
+' CORE API — facade + modules (matches export const api = {...})
+' ═════════════════════════════════════════════════════════════
+
+package "Core API" {
+  class api <<facade>> {
+    +books: booksApi
+    +categories: categoriesApi
+    +auth: authApi
+    +reviews: reviewsApi
+    +orders: ordersApi
+    +recommendations: recommendationsApi
+  }
+
+  class booksApi {
+    +getAll(params?): BooksResponse
+    +getFeatured(limit?): Book[]
+    +search(query, page?, perPage?): SearchResponse
+    +getByCategory(name, page?, perPage?): BooksResponse
+    +getById(id): Book
+    +getReviews(bookId, page?, perPage?): ReviewsResponse
+    +getGenres(): string[]
+    +create(bookData): {message, book}
+    +update(bookId, bookData): {message, book}
+    +delete(bookId): {message}
+  }
+
+  class categoriesApi {
+    +getAll(options?): Category[]
+    +getById(id): Category
+    +getByName(name): Category
+    +getBooks(categoryId, page?, perPage?): BooksResponse
+  }
+
+  class authApi {
+    +register(data): AuthResponse
+    +login(email, password): AuthResponse
+    +logout(): void
+    +getCurrentUser(): User
+    +updateUser(data): {message, user}
+    +changePassword(current, new): {message}
+    +isAuthenticated(): boolean
+  }
+
+  class reviewsApi {
+    +getAll(params?): ReviewsResponse
+    +getByBook(bookId, page?, perPage?): ReviewsResponse
+    +create(bookId, rating, text?): {message, review}
+    +update(reviewId, data): {message, review}
+    +delete(reviewId): {message}
+  }
+
+  class ordersApi {
+    +getAll(params?): {orders, total, pages, currentPage}
+    +getById(orderId): Order
+    +checkout(items): {message, order}
+    +validateCart(items): CartValidation
+    +pay(orderId): {message, order}
+    +cancel(orderId): {message, order}
+    +getStripeConfig(): {publishableKey}
+    +createStripeIntent(data): StripeIntentResponse
+    +confirmStripePayment(data): {message, order}
+  }
+
+  class recommendationsApi {
+    +get(limit?, excludeIds?): RecommendationsResponse
+    +getPersonalized(limit?): RecommendationsResponse
+    +getSimilar(bookId, limit?): SimilarBooksResponse
+    +getSearchBased(query, limit?, excludeIds?): RecommendationsResponse
+  }
+
+  class ApiError {
+    +status: number
+    +message: string
+  }
+}
+
+' Composition only — no fan-out "Use" edges through the diagram
+api *-- booksApi
+api *-- categoriesApi
+api *-- authApi
+api *-- reviewsApi
+api *-- ordersApi
+api *-- recommendationsApi
+
+' Force a compact 2×3 module grid under the facade
+api -[hidden]down- booksApi
+booksApi -[hidden]right- categoriesApi
+categoriesApi -[hidden]right- authApi
+booksApi -[hidden]down- reviewsApi
+categoriesApi -[hidden]down- ordersApi
+authApi -[hidden]down- recommendationsApi
+reviewsApi -[hidden]right- ordersApi
+ordersApi -[hidden]right- recommendationsApi
+ApiError -[hidden]left- api
+
+' ═════════════════════════════════════════════════════════════
+' DOMAIN MODELS
+' ═════════════════════════════════════════════════════════════
+
+package "Domain Models" {
+  class User {
+    +id: string
+    +username: string
+    +email: string?
+    +firstName: string?
+    +lastName: string?
+    +role: string?
+    +createdAt: string
+  }
+
+  class Category {
+    +id: number
+    +name: string
+    +parentId: number?
+  }
+
+  class Book {
+    +id: string
+    +title: string
+    +author: string
+    +isbn: string
+    +publisher: string
+    +publicationDate: string
+    +language: string
+    +genre: string
+    +description: string
+    +pageCount: number
+    +price: number
+    +currency: string
+    +stockQuantity: number
+    +imageUrl: string
+    +averageRating: number
+    +reviewCount: number
+    +popularityScore: number
+    +categoryId: number?
+    +createdAt: string
+    +updatedAt: string
+  }
+
+  class Review {
+    +id: string
+    +bookId: string
+    +userId: string?
+    +reviewerName: string
+    +rating: number
+    +text: string
+    +date: string
+  }
+
+  class Order {
+    +id: string
+    +userId: string
+    +totalAmount: number
+    +currency: string
+    +status: Pending|Paid|Shipped|Delivered|Cancelled
+    +createdAt: string
+    +updatedAt: string
+    +stripePaymentIntentId: string?
+    +customerEmail: string?
+    +customerName: string?
+  }
+
+  class OrderItem {
+    +id: string
+    +orderId: string
+    +bookId: string
+    +quantity: number
+    +unitPrice: number
+    +subtotal: number
+  }
+}
+
+' Domain associations (FK attributes kept; navigations drawn as edges)
+User "1" --> "0..*" Order : userId
+User "1" --> "0..*" Review : userId
+Order "1" *-- "0..*" OrderItem : items
+OrderItem "*" --> "1" Book : bookId
+Category "1" --> "0..*" Book : categoryId
+Category "0..1" --> "0..*" Category : parent
+Book "1" --> "0..*" Review : bookId
+
+' Horizontal domain spine to reduce crossings
+User -[hidden]right- Order
+Order -[hidden]right- OrderItem
+OrderItem -[hidden]right- Book
+Book -[hidden]right- Review
+Category -[hidden]up- Book
+
+' ═════════════════════════════════════════════════════════════
+' DTOs & PAYLOADS
+' ═════════════════════════════════════════════════════════════
+
+package "DTOs & Payloads" {
+  class AuthResponse {
+    +message: string
+    +accessToken: string
+    +refreshToken: string
+  }
+
+  class CartItem {
+    +bookId: string
+    +quantity: number
+  }
+
+  class CartValidation {
+    +valid: boolean
+    +subtotal: number
+    +tax: number
+    +total: number
+  }
+
+  class ValidatedCartItem {
+    +bookId: string
+    +quantity: number
+    +unitPrice: number
+    +subtotal: number
+    +available: number
+    +valid: boolean
+  }
+
+  class CartError {
+    +bookId: string?
+    +error: string
+  }
+
+  class ShippingAddress {
+    +line1: string
+    +line2: string?
+    +city: string
+    +state: string
+    +postalCode: string
+    +country: string
+  }
+
+  class StripeIntentResponse {
+    +clientSecret: string
+    +paymentIntentId: string
+    +amount: number
+    +currency: string
+  }
+
+  class RecommendationsResponse {
+    +recommendations: Book[]
+    +algorithm: string
+    +personalized: boolean
+    +basedOn: {genres, categoryIds}?
+  }
+
+  class SimilarBooksResponse {
+    +book: Book
+    +similar: Book[]
+    +algorithm: string
+  }
+}
+
+AuthResponse --> User : user
+CartValidation *-- ValidatedCartItem : items
+CartValidation o-- CartError : errors
+ValidatedCartItem --> Book : book
+
+' Stack DTOs vertically; keep cart cluster together
+AuthResponse -[hidden]down- CartItem
+CartItem -[hidden]down- CartValidation
+CartValidation -[hidden]down- ValidatedCartItem
+ValidatedCartItem -[hidden]down- CartError
+CartError -[hidden]down- ShippingAddress
+ShippingAddress -[hidden]down- StripeIntentResponse
+StripeIntentResponse -[hidden]down- RecommendationsResponse
+RecommendationsResponse -[hidden]down- SimilarBooksResponse
+
+' Place packages relative to each other (Core top, Domain bottom-left, DTOs right)
+api -[hidden]down- User
+ordersApi -[hidden]right- AuthResponse
+Book -[hidden]right- RecommendationsResponse
+
+@enduml

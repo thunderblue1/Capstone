@@ -11,6 +11,7 @@ import OrderDetailsPage from './components/OrderDetailsPage/OrderDetailsPage';
 import OrdersPage from './components/OrdersPage/OrdersPage';
 import ProfilePage from './components/ProfilePage/ProfilePage';
 import ManagerBooksPage from './components/ManagerBooksPage/ManagerBooksPage';
+import RateLimitBanner from './components/RateLimitBanner/RateLimitBanner';
 import type { Book, User, CartItem } from './services/types';
 import { logger } from './services/logger';
 import './App.css';
@@ -119,6 +120,7 @@ function App() {
 
   return (
     <div className="app">
+      <RateLimitBanner />
       <Routes>
         <Route 
           path="/" 

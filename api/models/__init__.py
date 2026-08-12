@@ -8,6 +8,7 @@ from .category import Category
 from .review import Review
 from .order import Order, OrderItem
 from .token_blocklist import TokenBlocklist
+from .ip_cooldown import IpCooldown
 
 __all__ = [
     'db',
@@ -19,5 +20,6 @@ __all__ = [
     'Order',
     'OrderItem',
     'TokenBlocklist',
+    'IpCooldown',
 ]
 

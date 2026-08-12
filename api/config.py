@@ -295,10 +295,13 @@ class Config:
     RECOMMENDER_ENABLED = os.environ.get('RECOMMENDER_ENABLED', 'false').lower() == 'true'
     RECOMMENDER_MODEL_PATH = os.environ.get('RECOMMENDER_MODEL_PATH', 'models/recommender')
 
-    # Rate limiting (default: 200/hour per IP; auth endpoints have stricter limits)
-    RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '200 per hour')
+    # Rate limiting (IP-keyed; use Redis via RATELIMIT_STORAGE_URI in production)
+    # Default covers public catalog reads; auth/CRUD add stricter per-route limits.
+    RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '120 per minute;2000 per hour')
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', '')  # e.g. redis:// for production
-    RATELIMIT_AUTH = os.environ.get('RATELIMIT_AUTH', '5 per minute')  # login, register
+    RATELIMIT_AUTH = os.environ.get('RATELIMIT_AUTH', '5 per minute')  # login, register, change-password
+    RATELIMIT_AUTHENTICATED = os.environ.get('RATELIMIT_AUTHENTICATED', '60 per minute')  # CRUD writes
+    IP_COOLDOWN_MINUTES = int(os.environ.get('IP_COOLDOWN_MINUTES', '45'))
 
     # Stripe Configuration
     # Default to test keys for development - override with .env file in production
@@ -340,10 +343,20 @@ class TestingWithApiKeyConfig(TestingConfig):
     API_KEY = 'test-api-key'
 
 
+class TestingWithRateLimitConfig(TestingConfig):
+    """Testing configuration with rate limits + IP cooldown enabled."""
+    RATELIMIT_ENABLED = True
+    RATELIMIT_DEFAULT = '1000 per hour'
+    RATELIMIT_AUTH = '2 per minute'
+    RATELIMIT_AUTHENTICATED = '60 per minute'
+    IP_COOLDOWN_MINUTES = 45
+
+
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
     'testing': TestingConfig,
     'testing_with_api_key': TestingWithApiKeyConfig,
+    'testing_with_rate_limit': TestingWithRateLimitConfig,
     'default': DevelopmentConfig
 }

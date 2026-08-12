@@ -4,15 +4,23 @@ Main application entry point
 """
 import logging
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from flask_limiter.errors import RateLimitExceeded
 from config import config, database_diagnostics
 from limiter import limiter
 from models import init_db, TokenBlocklist, db
 from routes import register_routes
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
+from utils.ip_cooldown import (
+    activate_cooldown,
+    cooldown_response,
+    get_active_cooldown,
+    is_path_exempt,
+    log_boundary_hit,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +41,10 @@ def create_app(config_name=None):
     
     # Rate limiting (default in-memory; set RATELIMIT_STORAGE_URI for Redis in production)
     limiter.init_app(app)
-    app.config.setdefault('RATELIMIT_DEFAULT', '200 per hour')
+    app.config.setdefault('RATELIMIT_DEFAULT', '120 per minute;2000 per hour')
     if app.config.get('RATELIMIT_STORAGE_URI'):
         limiter.storage_uri = app.config['RATELIMIT_STORAGE_URI']
-    limiter.default_limits = [app.config.get('RATELIMIT_DEFAULT', '200 per hour')]
+    limiter.default_limits = [app.config.get('RATELIMIT_DEFAULT', '120 per minute;2000 per hour')]
 
     logger.info('Database config: %s', database_diagnostics())
 
@@ -50,6 +58,19 @@ def create_app(config_name=None):
         if not jti:
             return False
         return db.session.query(TokenBlocklist.id).filter_by(jti=jti).first() is not None
+
+    @app.before_request
+    def enforce_ip_cooldown():
+        """Reject cooled-down IPs early with the same 429 + Retry-After payload."""
+        if is_path_exempt():
+            return None
+        if not request.path.startswith('/api/'):
+            return None
+        row = get_active_cooldown()
+        if row:
+            log_boundary_hit(429, cooldown=True)
+            return cooldown_response(row)
+        return None
     
     # Register API routes
     register_routes(app)
@@ -60,7 +81,6 @@ def create_app(config_name=None):
 
         @app.before_request
         def require_api_key():
-            from flask import request
             if request.path in ('/', '/api/health', '/api/health/db'):
                 return None
             if request.path == '/api/orders/stripe/webhook':
@@ -72,6 +92,7 @@ def create_app(config_name=None):
 
     # Health check endpoint
     @app.route('/api/health', methods=['GET'])
+    @limiter.exempt
     def health_check():
         return jsonify({
             'status': 'healthy',
@@ -80,6 +101,7 @@ def create_app(config_name=None):
         })
 
     @app.route('/api/health/db', methods=['GET'])
+    @limiter.exempt
     def health_check_db():
         info = database_diagnostics()
         try:
@@ -115,6 +137,13 @@ def create_app(config_name=None):
         })
     
     # Error handlers
+    @app.errorhandler(RateLimitExceeded)
+    def rate_limit_handler(error):
+        """On limiter trip: start 45-min IP cooldown and return Retry-After."""
+        row = activate_cooldown(reason='rate_limit')
+        log_boundary_hit(429, cooldown=False)
+        return cooldown_response(row)
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({'error': 'Resource not found'}), 404

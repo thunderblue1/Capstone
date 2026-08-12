@@ -39,6 +39,7 @@ import stripe
 from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import desc
+from limiter import authenticated_limit, limiter
 from models import db, Order, OrderItem, Book
 from utils.tax import calculate_tax
 
@@ -86,6 +87,7 @@ def get_order(order_id):
 
 @orders_bp.route('/checkout', methods=['POST'])
 @jwt_required()
+@limiter.limit(authenticated_limit)
 def checkout():
     """
     Create a new order from cart items.
@@ -200,6 +202,7 @@ def checkout():
 
 @orders_bp.route('/<int:order_id>/pay', methods=['POST'])
 @jwt_required()
+@limiter.limit(authenticated_limit)
 def pay_order(order_id):
     """Mark an order as paid (mock payment)"""
     user_id = get_jwt_identity()
@@ -225,6 +228,7 @@ def pay_order(order_id):
 
 @orders_bp.route('/<int:order_id>/cancel', methods=['POST'])
 @jwt_required()
+@limiter.limit(authenticated_limit)
 def cancel_order(order_id):
     """Cancel an order"""
     user_id = get_jwt_identity()
@@ -251,6 +255,7 @@ def cancel_order(order_id):
 
 
 @orders_bp.route('/cart/validate', methods=['POST'])
+@limiter.limit(authenticated_limit)
 def validate_cart():
     """Validate cart items (check stock, prices) without creating an order"""
     data = request.get_json()
@@ -330,6 +335,7 @@ def get_stripe_config():
 
 @orders_bp.route('/stripe/create-intent', methods=['POST'])
 @jwt_required()
+@limiter.limit(authenticated_limit)
 def create_stripe_intent():
     """
     Create a Stripe Payment Intent for checkout.
@@ -454,6 +460,7 @@ def create_stripe_intent():
 
 @orders_bp.route('/stripe/confirm', methods=['POST'])
 @jwt_required()
+@limiter.limit(authenticated_limit)
 def confirm_stripe_payment():
     """
     Confirm Stripe payment and create order.
@@ -606,6 +613,7 @@ def confirm_stripe_payment():
 
 
 @orders_bp.route('/stripe/webhook', methods=['POST'])
+@limiter.exempt
 def stripe_webhook():
     """
     Stripe webhook endpoint to handle payment events.

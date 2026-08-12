@@ -40,14 +40,10 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_jwt,
 )
-from limiter import limiter
+from limiter import auth_limit, limiter
 from models import db, User, TokenBlocklist
 
 auth_bp = Blueprint('auth', __name__)
-
-# Stricter rate limit for auth (brute-force protection)
-def _auth_limit():
-    return current_app.config.get('RATELIMIT_AUTH', '5 per minute')
 
 
 def _revoke_token(jti: str, token_type: str, exp=None):
@@ -57,7 +53,7 @@ def _revoke_token(jti: str, token_type: str, exp=None):
 
 
 @auth_bp.route('/register', methods=['POST'])
-@limiter.limit(_auth_limit)
+@limiter.limit(auth_limit)
 def register():
     """Register a new user"""
     data = request.get_json()
@@ -107,7 +103,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['POST'])
-@limiter.limit(_auth_limit)
+@limiter.limit(auth_limit)
 def login():
     """Login with email and password"""
     data = request.get_json()
@@ -212,6 +208,7 @@ def update_current_user():
 
 @auth_bp.route('/change-password', methods=['POST'])
 @jwt_required()
+@limiter.limit(auth_limit)
 def change_password():
     """Change password for current user"""
     user_id = get_jwt_identity()
