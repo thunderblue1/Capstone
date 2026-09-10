@@ -44,7 +44,7 @@ title CuriousBooks API — Class Diagram
 ' CORE API — facade + modules (matches export const api = {...})
 ' ═════════════════════════════════════════════════════════════
 
-package "Core API" {
+package "Frontend Core API Facade" {
   class api <<facade>> {
     +books: booksApi
     +categories: categoriesApi
